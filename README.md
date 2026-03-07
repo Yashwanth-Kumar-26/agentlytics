@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Unified analytics for your AI coding agents</strong><br>
-  <sub>Cursor · Windsurf · Claude Code · VS Code Copilot · Zed · Antigravity · OpenCode · Gemini CLI · Copilot CLI</sub>
+  <sub>Cursor · Windsurf · Claude Code · VS Code Copilot · Zed · Antigravity · OpenCode · Gemini CLI · Copilot CLI · Cursor Agent</sub>
 </p>
 
 <p align="center">
