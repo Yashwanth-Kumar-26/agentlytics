@@ -99,7 +99,7 @@ export default function App() {
           <Route path="/" element={<Dashboard overview={overview} />} />
           <Route path="/projects" element={<Projects overview={overview} />} />
           <Route path="/sessions" element={<Sessions overview={overview} />} />
-          <Route path="/sessions/:id" element={<ChatDetail />} />
+          {/* ChatDetail is now a sidebar in Sessions */}
           <Route path="/analysis" element={<DeepAnalysis overview={overview} />} />
           <Route path="/compare" element={<Compare overview={overview} />} />
           <Route path="/sql" element={<SqlViewer />} />

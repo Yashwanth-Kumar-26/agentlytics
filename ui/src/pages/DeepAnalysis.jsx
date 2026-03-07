@@ -3,7 +3,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import { Doughnut, Bar } from 'react-chartjs-2'
 import { Loader2, X } from 'lucide-react'
 import { fetchDeepAnalytics, fetchToolCalls } from '../lib/api'
-import { editorLabel, editorColor, formatNumber, formatDateTime } from '../lib/constants'
+import { editorLabel, editorColor, formatNumber, formatDateTime, dateRangeToApiParams } from '../lib/constants'
 import { useTheme } from '../lib/theme'
 import KpiCard from '../components/KpiCard'
 import DateRangePicker from '../components/DateRangePicker'
@@ -202,9 +202,8 @@ export default function DeepAnalysis({ overview }) {
           <Loader2 size={11} className="animate-spin" style={{ color: 'var(--c-text3)' }} />
         )}
         {data && <span className="text-[10px]" style={{ color: 'var(--c-text2)' }}>{data.analyzedChats} sessions</span>}
+        <div className="ml-auto"><DateRangePicker value={dateRange} onChange={setDateRange} /></div>
       </div>
-      {/* Date range filter */}
-      <DateRangePicker value={dateRange} onChange={setDateRange} />
 
       {data && (
         <>

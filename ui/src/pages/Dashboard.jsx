@@ -207,8 +207,9 @@ export default function Dashboard({ overview }) {
 
   return (
     <div className="fade-in space-y-3">
-      {/* Share button */}
-      <div className="flex justify-end">
+      {/* Top bar */}
+      <div className="flex items-center justify-end gap-3">
+        <DateRangePicker value={dateRange} onChange={setDateRange} />
         <button
           onClick={handleShare}
           disabled={sharing}
@@ -259,11 +260,6 @@ export default function Dashboard({ overview }) {
         )}
       </div>
 
-      {/* Date range filter bar */}
-      <div className="card px-3 py-2 flex items-center gap-2">
-        <span className="text-[10px] uppercase tracking-wider mr-1" style={{ color: 'var(--c-text3)' }}>period</span>
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
-      </div>
 
       {/* KPIs row 1: Core stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">

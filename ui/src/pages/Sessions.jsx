@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
 import { Search, Filter, List, FolderOpen, ChevronDown, ChevronRight, X } from 'lucide-react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler } from 'chart.js'
 import { Line } from 'react-chartjs-2'
@@ -8,6 +8,7 @@ import { editorColor, editorLabel, formatDate, dateRangeToApiParams } from '../l
 import { useTheme } from '../lib/theme'
 import EditorDot from '../components/EditorDot'
 import DateRangePicker from '../components/DateRangePicker'
+import ChatSidebar from '../components/ChatSidebar'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, Filler)
 
@@ -110,7 +111,7 @@ export default function Sessions({ overview }) {
   const [collapsedProjects, setCollapsedProjects] = useState(new Set())
   const [dateRange, setDateRange] = useState(null) // [startWeek, endWeek] — chart drag-select
   const [apiDateRange, setApiDateRange] = useState(null) // { from, to } — server-side date filter
-  const navigate = useNavigate()
+  const [selectedChatId, setSelectedChatId] = useState(null)
   const chartRef = useRef(null)
 
   const onRangeSelect = useCallback((start, end) => {
@@ -214,7 +215,7 @@ export default function Sessions({ overview }) {
       style={{ borderBottom: '1px solid var(--c-border)' }}
       onMouseEnter={e => e.currentTarget.style.background = 'var(--c-bg3)'}
       onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-      onClick={() => navigate(`/sessions/${c.id}`)}
+      onClick={() => setSelectedChatId(c.id)}
     >
       <td className="py-2.5 px-4">
         <EditorDot source={c.source} showLabel size={7} />
@@ -230,6 +231,9 @@ export default function Sessions({ overview }) {
       )}
       <td className="py-2.5 px-4">
         <span className="text-xs" style={{ color: 'var(--c-text2)' }}>{c.mode}</span>
+      </td>
+      <td className="py-2.5 px-4 text-xs truncate max-w-[180px] font-mono" style={{ color: 'var(--c-text2)' }} title={c.topModel || ''}>
+        {c.topModel || ''}
       </td>
       <td className="py-2.5 px-4 text-xs whitespace-nowrap" style={{ color: 'var(--c-text2)' }}>
         {formatDate(c.lastUpdatedAt || c.createdAt)}
@@ -284,14 +288,13 @@ export default function Sessions({ overview }) {
       )}
 
       {/* Filters */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3">
           <div className="relative">
             <Filter size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--c-text3)' }} />
             <select
               value={editor}
               onChange={e => setEditor(e.target.value)}
-              className="pl-8 pr-3 py-2 text-sm outline-none appearance-none cursor-pointer"
+              className="pl-8 pr-3 py-1 text-[11px] outline-none appearance-none cursor-pointer"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             >
               <option value="">all editors</option>
@@ -307,13 +310,13 @@ export default function Sessions({ overview }) {
               placeholder="search sessions..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm outline-none"
+              className="w-full pl-8 pr-3 py-1 text-[11px] outline-none"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             />
           </div>
           <button
             onClick={() => setGroupByProject(!groupByProject)}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs transition"
+            className="flex items-center gap-1.5 px-3 py-1 text-[11px] transition"
             style={{
               border: groupByProject ? '1px solid var(--c-accent)' : '1px solid var(--c-border)',
               color: groupByProject ? 'var(--c-accent)' : 'var(--c-text2)',
@@ -326,9 +329,8 @@ export default function Sessions({ overview }) {
           <span className="text-[10px]" style={{ color: 'var(--c-text3)' }}>
             {loading ? 'loading...' : `${filtered.length} of ${total}`}
           </span>
-        </div>
         {/* Server-side date range filter */}
-        <DateRangePicker value={apiDateRange} onChange={setApiDateRange} />
+        <div className="ml-auto"><DateRangePicker value={apiDateRange} onChange={setApiDateRange} /></div>
       </div>
 
       {/* Session table */}
@@ -341,6 +343,7 @@ export default function Sessions({ overview }) {
                 <th className="text-left py-2.5 px-4 font-medium">name</th>
                 <th className="text-left py-2.5 px-4 font-medium">project</th>
                 <th className="text-left py-2.5 px-4 font-medium">mode</th>
+                <th className="text-left py-2.5 px-4 font-medium">model</th>
                 <th className="text-left py-2.5 px-4 font-medium">updated</th>
               </tr>
             </thead>
@@ -389,6 +392,9 @@ export default function Sessions({ overview }) {
           )}
         </div>
       )}
+
+      {/* Chat sidebar */}
+      <ChatSidebar chatId={selectedChatId} onClose={() => setSelectedChatId(null)} />
     </div>
   )
 }

@@ -110,12 +110,11 @@ export default function Projects({ overview }) {
       </div>
 
       {/* Filters */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2">
           <select
             value={editorFilter}
             onChange={e => setEditorFilter(e.target.value)}
-            className="px-2 py-2 text-sm outline-none"
+            className="px-2 py-1 text-[11px] outline-none"
             style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
           >
             <option value="">All Editors</option>
@@ -130,12 +129,11 @@ export default function Projects({ overview }) {
               placeholder="search projects..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-2 text-sm outline-none"
+              className="w-full pl-8 pr-3 py-1 text-[11px] outline-none"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             />
           </div>
-        </div>
-        <DateRangePicker value={dateRange} onChange={setDateRange} />
+        <div className="ml-auto"><DateRangePicker value={dateRange} onChange={setDateRange} /></div>
       </div>
 
       {/* Project list */}
