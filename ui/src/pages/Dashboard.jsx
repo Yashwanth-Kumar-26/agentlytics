@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, X, Flame, Zap, MessageSquare, Wrench, Share2 } from 'lucide-react'
+import { ArrowRight, X, Flame, Zap, MessageSquare, Wrench, Share2, AlertTriangle } from 'lucide-react'
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler } from 'chart.js'
 import { Doughnut, Bar, Line } from 'react-chartjs-2'
 import KpiCard from '../components/KpiCard'
 import ActivityHeatmap from '../components/ActivityHeatmap'
 import DateRangePicker from '../components/DateRangePicker'
 import { editorColor, editorLabel, formatNumber, dateRangeToApiParams } from '../lib/constants'
-import { fetchDailyActivity, fetchOverview as fetchOverviewApi, fetchDashboardStats, fetchShareImage } from '../lib/api'
+import EditorIcon from '../components/EditorIcon'
+import { fetchDailyActivity, fetchOverview as fetchOverviewApi, fetchDashboardStats, fetchShareImage, fetchChats } from '../lib/api'
 import { useTheme } from '../lib/theme'
 import SectionTitle from '../components/SectionTitle'
 
@@ -30,6 +31,7 @@ export default function Dashboard({ overview }) {
   const [dateRange, setDateRange] = useState(null)
   const { dark } = useTheme()
   const [sharing, setSharing] = useState(false)
+  const [largeContextChats, setLargeContextChats] = useState(null)
   const txtColor = dark ? '#888' : '#555'
   const txtDim = dark ? '#555' : '#999'
   const gridColor = dark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'
@@ -50,6 +52,14 @@ export default function Dashboard({ overview }) {
 
   useEffect(() => {
     const dateParams = dateRangeToApiParams(dateRange)
+    const chatParams = { limit: 500, named: false, ...dateParams }
+    if (selectedEditor) chatParams.editor = selectedEditor
+
+    fetchChats(chatParams).then(r => {
+      const big = (r.chats || []).filter(c => c.bubbleCount >= 100).sort((a, b) => b.bubbleCount - a.bubbleCount)
+      setLargeContextChats(big)
+    })
+
     if (!selectedEditor) {
       setFilteredData(null)
       fetchDailyActivity(dateParams).then(setDailyData)
@@ -218,76 +228,124 @@ export default function Dashboard({ overview }) {
         </button>
       </div>
 
-      {/* Editor breakdown - top */}
+      {/* Editor breakdown - compact row */}
       <div className="card p-3">
-        <SectionTitle>editors</SectionTitle>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
+        <div className="flex items-center flex-wrap gap-1.5">
           {allEditors.map(e => {
             const isSelected = selectedEditor === e.id
             return (
-              <div
+              <button
                 key={e.id}
-                className="card px-3 py-3 text-center cursor-pointer transition"
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] cursor-pointer transition rounded-sm"
                 style={{
                   border: isSelected ? `1.5px solid ${editorColor(e.id)}` : '1px solid var(--c-border)',
+                  background: isSelected ? editorColor(e.id) + '15' : 'transparent',
                   opacity: selectedEditor && !isSelected ? 0.4 : 1,
+                  color: 'var(--c-text)',
                 }}
                 onClick={() => setSelectedEditor(isSelected ? null : e.id)}
               >
-                <div className="w-2.5 h-2.5 rounded-full mx-auto mb-1.5" style={{ background: editorColor(e.id) }} />
-                <div className="text-lg font-bold" style={{ color: 'var(--c-white)' }}>{e.count}</div>
-                <div className="text-[10px]" style={{ color: 'var(--c-text2)' }}>{editorLabel(e.id)}</div>
-              </div>
+                <EditorIcon source={e.id} size={14} />
+                <span style={{ color: 'var(--c-text2)' }}>{editorLabel(e.id)}</span>
+                <span className="font-bold" style={{ color: 'var(--c-white)' }}>{e.count}</span>
+              </button>
             )
           })}
         </div>
         {selectedEditor && sel && (
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-2 flex items-center gap-2">
             <button onClick={() => navigate(`/sessions?editor=${selectedEditor}`)} className="flex items-center gap-1 text-[11px] px-2.5 py-1 transition" style={{ color: 'var(--c-accent)', border: '1px solid var(--c-border)' }}>
               Show Sessions <ArrowRight size={11} />
             </button>
             <button onClick={() => setSelectedEditor(null)} className="flex items-center gap-1 text-[11px] px-2.5 py-1 transition" style={{ color: 'var(--c-text2)', border: '1px solid var(--c-border)' }}>
               <X size={9} /> Clear
             </button>
-            <span className="text-[11px] ml-auto" style={{ color: 'var(--c-text)' }}>
-              <span className="font-bold" style={{ color: editorColor(selectedEditor) }}>{editorLabel(selectedEditor)}</span>
-              <span style={{ color: 'var(--c-text2)' }}> — {sel.count} sessions</span>
-            </span>
           </div>
         )}
       </div>
 
 
-      {/* KPIs row 1: Core stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2">
-        <KpiCard label="total sessions" value={formatNumber(d.totalChats)} sub={sel ? editorLabel(sel.id) : `${allEditors.length} editors`} />
-        <KpiCard label="projects" value={d.topProjects.length} sub="unique folders" />
-        <KpiCard label="time span" value={`${daysSpan}d`} sub={d.oldestChat ? `since ${new Date(d.oldestChat).toLocaleDateString()}` : ''} />
-        <KpiCard label="this month" value={thisMonth ? thisMonth.count : 0} sub={thisMonth ? thisMonth.month : ''} />
+      {/* KPIs — compact single row */}
+      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(90px, 1fr))' }}>
+        <KpiCard label="sessions" value={formatNumber(d.totalChats)} sub={sel ? editorLabel(sel.id) : `${allEditors.length} editors`} onClick={() => navigate(selectedEditor ? `/sessions?editor=${selectedEditor}` : '/sessions')} />
+        <KpiCard label="projects" value={d.topProjects.length} sub={`${daysSpan}d span`} onClick={() => navigate('/projects')} />
+        <KpiCard label="this month" value={thisMonth ? thisMonth.count : 0} sub={thisMonth ? thisMonth.month : ''} onClick={() => navigate('/sessions')} />
         {stats && <>
-          <KpiCard label="current streak" value={`${stats.streaks.current}d`} sub={<span className="flex items-center gap-0.5"><Flame size={8} className="text-orange-400" /> {stats.streaks.longest}d best</span>} />
-          <KpiCard label="active days" value={stats.streaks.totalDays} sub={daysSpan > 0 ? `${((stats.streaks.totalDays / daysSpan) * 100).toFixed(0)}% of span` : ''} />
-          <KpiCard label="avg msgs/session" value={avgMsgsPerSession} sub={<span className="flex items-center gap-0.5"><MessageSquare size={8} /> conversation depth</span>} />
-          <KpiCard label="tool calls" value={formatNumber(stats.totalToolCalls)} sub={<span className="flex items-center gap-0.5"><Wrench size={8} /> total invocations</span>} />
+          <KpiCard label="avg depth" value={avgMsgsPerSession} sub={<span className="flex items-center gap-0.5"><MessageSquare size={8} /> msgs/session</span>} />
+          <KpiCard label="tool calls" value={formatNumber(stats.totalToolCalls)} sub={<span className="flex items-center gap-0.5"><Wrench size={8} /> total</span>} />
+        </>}
+        {tk && tk.input > 0 && <>
+          <KpiCard label="tokens in" value={formatNumber(tk.input)} sub="prompt" />
+          <KpiCard label="tokens out" value={formatNumber(tk.output)} sub={`${outputInputRatio}× ratio`} />
+          <KpiCard label="cache hit" value={`${cacheHitRate}%`} sub={formatNumber(tk.cacheRead)} />
+          <KpiCard label="you wrote" value={formatNumber(tk.userChars)} sub={`AI: ${formatNumber(tk.assistantChars)}`} />
         </>}
       </div>
 
-      {/* Token economy KPIs */}
-      {tk && tk.input > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-          <KpiCard label="input tokens" value={formatNumber(tk.input)} sub="total prompt" />
-          <KpiCard label="output tokens" value={formatNumber(tk.output)} sub="total completion" />
-          <KpiCard label="cache read" value={formatNumber(tk.cacheRead)} sub={`${cacheHitRate}% hit rate`} />
-          <KpiCard label="cache write" value={formatNumber(tk.cacheWrite)} />
-          <KpiCard label="output/input" value={`${outputInputRatio}×`} sub={<span className="flex items-center gap-0.5"><Zap size={8} /> efficiency ratio</span>} />
-          <KpiCard label="you wrote" value={formatNumber(tk.userChars)} sub={`AI wrote ${formatNumber(tk.assistantChars)}`} />
-        </div>
-      )}
-
-      {/* Activity Heatmap */}
+      {/* Activity Heatmap | Col 1 | Col 2 | Col 3 */}
       <div className="card p-3">
         <SectionTitle>agentic coding activity</SectionTitle>
-        {dailyData ? <ActivityHeatmap dailyData={dailyData} /> : <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>loading...</div>}
+        <div className="flex gap-4">
+          <div className="min-w-0 flex-shrink-0">
+            {dailyData ? <ActivityHeatmap dailyData={dailyData} /> : <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>loading...</div>}
+          </div>
+          {stats && dailyData && (() => {
+            const activeDays = dailyData.filter(d => d.total > 0)
+            const busiest = activeDays.length > 0 ? activeDays.reduce((a, b) => a.total > b.total ? a : b) : null
+            const totalSessions = activeDays.reduce((s, d) => s + d.total, 0)
+            const avgPerDay = activeDays.length > 0 ? (totalSessions / activeDays.length).toFixed(1) : 0
+            return (
+              <div className="flex-1 grid grid-cols-3 gap-3 text-[10px] min-w-0" style={{ borderLeft: '1px solid var(--c-border)', paddingLeft: 16 }}>
+                <div className="space-y-2 min-w-0">
+                  <div>
+                    <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">streaks</div>
+                    <div className="flex items-center gap-1">
+                      <Flame size={10} className="text-orange-400 flex-shrink-0" />
+                      <span style={{ color: 'var(--c-white)' }} className="font-bold">{stats.streaks.current}d</span>
+                      <span style={{ color: 'var(--c-text3)' }}>now</span>
+                    </div>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <Zap size={10} className="text-yellow-400 flex-shrink-0" />
+                      <span style={{ color: 'var(--c-white)' }} className="font-bold">{stats.streaks.longest}d</span>
+                      <span style={{ color: 'var(--c-text3)' }}>best</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">active days</div>
+                    <span style={{ color: 'var(--c-white)' }} className="font-bold">{stats.streaks.totalDays}</span>
+                    <span className="ml-1" style={{ color: 'var(--c-text3)' }}>{avgPerDay}/day</span>
+                  </div>
+                </div>
+                <div className="space-y-2 min-w-0">
+                  {busiest && (
+                    <div>
+                      <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">busiest day</div>
+                      <div style={{ color: 'var(--c-white)' }} className="font-bold">{busiest.day}</div>
+                      <div style={{ color: 'var(--c-text3)' }}>{busiest.total} sessions</div>
+                    </div>
+                  )}
+                  <div>
+                    <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">peak hour</div>
+                    <div style={{ color: 'var(--c-white)' }} className="font-bold">{String(stats.hourly.indexOf(Math.max(...stats.hourly))).padStart(2, '0')}:00</div>
+                    <div style={{ color: 'var(--c-text3)' }}>{Math.max(...stats.hourly)} sessions</div>
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <div style={{ color: 'var(--c-text3)' }} className="uppercase tracking-wider mb-1">top modes</div>
+                  <div className="space-y-1">
+                    {modes.slice(0, 5).map(([mode, count]) => (
+                      <div key={mode} className="flex items-center gap-1">
+                        <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: MODE_COLORS[mode] || '#6b7280' }} />
+                        <span className="truncate" style={{ color: 'var(--c-text)' }}>{mode}</span>
+                        <span className="ml-auto font-bold flex-shrink-0" style={{ color: 'var(--c-white)' }}>{formatNumber(count)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+        </div>
       </div>
 
       {/* Monthly trend (stacked bar by editor) */}
@@ -405,56 +463,83 @@ export default function Dashboard({ overview }) {
         </div>
       </div>
 
-      {/* Bottom row: Top models + Top tools */}
-      {stats && (stats.topModels.length > 0 || stats.topTools.length > 0) && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-          {/* Top models */}
-          {stats.topModels.length > 0 && (
-            <div className="card p-3">
-              <SectionTitle>top models</SectionTitle>
-              <div className="space-y-1">
-                {stats.topModels.map((m, i) => {
-                  const maxM = stats.topModels[0].count
-                  return (
-                    <div key={m.name} className="flex items-center gap-2">
-                      <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
-                      <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
-                        <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(m.count / maxM * 100).toFixed(1)}%`, background: i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : '#a5b4fc40' }}>
-                          <span className="text-[8px] truncate" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{m.name}</span>
-                        </div>
+      {/* Bottom row: Top models + Top tools + Large context */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
+        {stats && stats.topModels.length > 0 && (
+          <div className="card p-3">
+            <SectionTitle>top models</SectionTitle>
+            <div className="space-y-1">
+              {stats.topModels.map((m, i) => {
+                const maxM = stats.topModels[0].count
+                return (
+                  <div key={m.name} className="flex items-center gap-2">
+                    <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
+                    <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
+                      <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(m.count / maxM * 100).toFixed(1)}%`, background: i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : '#a5b4fc40' }}>
+                        <span className="text-[8px] truncate" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{m.name}</span>
                       </div>
-                      <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{m.count}</span>
                     </div>
-                  )
-                })}
-              </div>
+                    <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{m.count}</span>
+                  </div>
+                )
+              })}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Top tools */}
-          {stats.topTools.length > 0 && (
-            <div className="card p-3">
-              <SectionTitle>top tools <span style={{ color: 'var(--c-text3)' }}>({formatNumber(stats.totalToolCalls)} total)</span></SectionTitle>
-              <div className="space-y-1">
-                {stats.topTools.map((t, i) => {
-                  const maxT = stats.topTools[0].count
-                  return (
-                    <div key={t.name} className="flex items-center gap-2">
-                      <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
-                      <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
-                        <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(t.count / maxT * 100).toFixed(1)}%`, background: i === 0 ? '#10b981' : i === 1 ? '#34d399' : '#6ee7b740' }}>
-                          <span className="text-[8px] truncate font-mono" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{t.name}</span>
-                        </div>
+        {stats && stats.topTools.length > 0 && (
+          <div className="card p-3">
+            <SectionTitle>top tools <span style={{ color: 'var(--c-text3)' }}>({formatNumber(stats.totalToolCalls)} total)</span></SectionTitle>
+            <div className="space-y-1">
+              {stats.topTools.map((t, i) => {
+                const maxT = stats.topTools[0].count
+                return (
+                  <div key={t.name} className="flex items-center gap-2">
+                    <span className="text-[9px] w-3 text-right" style={{ color: 'var(--c-text3)' }}>{i + 1}</span>
+                    <div className="flex-1 h-4 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
+                      <div className="h-full rounded-sm flex items-center px-1.5" style={{ width: `${(t.count / maxT * 100).toFixed(1)}%`, background: i === 0 ? '#10b981' : i === 1 ? '#34d399' : '#6ee7b740' }}>
+                        <span className="text-[8px] truncate font-mono" style={{ color: i < 2 ? '#fff' : 'var(--c-text2)' }}>{t.name}</span>
                       </div>
-                      <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{formatNumber(t.count)}</span>
                     </div>
-                  )
-                })}
-              </div>
+                    <span className="text-[9px] w-8 text-right" style={{ color: 'var(--c-text3)' }}>{formatNumber(t.count)}</span>
+                  </div>
+                )
+              })}
             </div>
-          )}
-        </div>
-      )}
+          </div>
+        )}
+
+        {largeContextChats && largeContextChats.length > 0 && (
+          <div className="card p-3">
+            <SectionTitle>
+              <span className="inline-flex items-center gap-1">
+                <AlertTriangle size={10} className="text-amber-400" />
+                large context
+                <span style={{ color: 'var(--c-text3)' }}>({largeContextChats.length})</span>
+              </span>
+            </SectionTitle>
+            <div className="space-y-1">
+              {largeContextChats.slice(0, 10).map(c => (
+                <div
+                  key={c.id}
+                  className="flex items-center gap-1.5 px-1.5 py-1 rounded-sm cursor-pointer transition hover:opacity-80"
+                  style={{ background: c.bubbleCount >= 500 ? 'rgba(239,68,68,0.06)' : 'rgba(245,158,11,0.06)' }}
+                  onClick={() => navigate(`/sessions/${c.id}`)}
+                >
+                  <EditorIcon source={c.source} size={10} />
+                  <span className="text-[9px] truncate flex-1" style={{ color: 'var(--c-text)' }}>{c.name || 'Untitled'}</span>
+                  <span
+                    className="text-[9px] font-bold flex-shrink-0"
+                    style={{ color: c.bubbleCount >= 500 ? '#ef4444' : '#f59e0b' }}
+                  >
+                    {c.bubbleCount}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
