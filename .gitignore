@@ -146,3 +146,5 @@ vite.config.ts.timestamp-*
 # UI build output (built from ui/ source)
 public/assets/
 public/index.html
+
+.DS_Store

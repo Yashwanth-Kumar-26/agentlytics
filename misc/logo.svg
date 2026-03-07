@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Terminal window -->
+  <rect x="32" y="32" width="448" height="448" rx="40" fill="#111" stroke="#333" stroke-width="4"/>
+  <!-- Title bar -->
+  <rect x="32" y="32" width="448" height="56" rx="40" fill="#1a1a1a"/>
+  <rect x="32" y="68" width="448" height="20" fill="#1a1a1a"/>
+  <!-- Traffic lights -->
+  <circle cx="72" cy="60" r="8" fill="#333"/>
+  <circle cx="100" cy="60" r="8" fill="#333"/>
+  <circle cx="128" cy="60" r="8" fill="#333"/>
+  <!-- Prompt cursor blink -->
+  <text x="68" y="140" font-family="monospace" font-size="28" fill="#555">$</text>
+  <text x="96" y="140" font-family="monospace" font-size="24" fill="#888">npx agentlytics</text>
+  <!-- Chart bars -->
+  <rect x="88"  y="340" width="44" height="100" rx="4" fill="#e5e5e5" opacity="0.5"/>
+  <rect x="152" y="280" width="44" height="160" rx="4" fill="#e5e5e5" opacity="0.65"/>
+  <rect x="216" y="220" width="44" height="220" rx="4" fill="#fff" opacity="0.85"/>
+  <rect x="280" y="300" width="44" height="140" rx="4" fill="#e5e5e5" opacity="0.65"/>
+  <rect x="344" y="250" width="44" height="190" rx="4" fill="#e5e5e5" opacity="0.5"/>
+  <rect x="408" y="190" width="44" height="250" rx="4" fill="#fff" opacity="0.85"/>
+  <!-- Trend line -->
+  <polyline points="110,320 174,258 238,198 302,278 366,228 430,168"
+    stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+  <!-- Data points -->
+  <circle cx="110" cy="320" r="6" fill="#fff"/>
+  <circle cx="174" cy="258" r="6" fill="#fff"/>
+  <circle cx="238" cy="198" r="6" fill="#fff"/>
+  <circle cx="302" cy="278" r="6" fill="#fff"/>
+  <circle cx="366" cy="228" r="6" fill="#fff"/>
+  <circle cx="430" cy="168" r="6" fill="#fff"/>
+  <!-- Baseline -->
+  <line x1="68" y1="440" x2="460" y2="440" stroke="#333" stroke-width="2"/>
+  <!-- Y-axis -->
+  <line x1="68" y1="160" x2="68" y2="440" stroke="#333" stroke-width="2"/>
+  <!-- Axis ticks -->
+  <line x1="64" y1="440" x2="68" y2="440" stroke="#555" stroke-width="1.5"/>
+  <line x1="64" y1="370" x2="68" y2="370" stroke="#555" stroke-width="1.5"/>
+  <line x1="64" y1="300" x2="68" y2="300" stroke="#555" stroke-width="1.5"/>
+  <line x1="64" y1="230" x2="68" y2="230" stroke="#555" stroke-width="1.5"/>
+  <line x1="64" y1="160" x2="68" y2="160" stroke="#555" stroke-width="1.5"/>
+</svg>
