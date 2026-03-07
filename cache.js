@@ -602,6 +602,9 @@ function safeParseJson(s) {
 function resetAndRescan(onProgress) {
   if (db) db.close();
   if (fs.existsSync(CACHE_DB)) fs.unlinkSync(CACHE_DB);
+  for (const suffix of ['-wal', '-shm']) {
+    if (fs.existsSync(CACHE_DB + suffix)) fs.unlinkSync(CACHE_DB + suffix);
+  }
   initDb();
   return scanAll(onProgress);
 }
@@ -676,6 +679,9 @@ async function scanAllAsync(onProgress) {
 async function resetAndRescanAsync(onProgress) {
   if (db) db.close();
   if (fs.existsSync(CACHE_DB)) fs.unlinkSync(CACHE_DB);
+  for (const suffix of ['-wal', '-shm']) {
+    if (fs.existsSync(CACHE_DB + suffix)) fs.unlinkSync(CACHE_DB + suffix);
+  }
   initDb();
   return scanAllAsync(onProgress);
 }

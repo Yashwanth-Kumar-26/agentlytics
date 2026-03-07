@@ -164,6 +164,10 @@ if (noCache) {
   const cacheDb = path.join(os.homedir(), '.agentlytics', 'cache.db');
   if (fs.existsSync(cacheDb)) {
     fs.unlinkSync(cacheDb);
+    // Remove WAL/SHM journal files to avoid SQLITE_IOERR_SHORT_READ
+    for (const suffix of ['-wal', '-shm']) {
+      if (fs.existsSync(cacheDb + suffix)) fs.unlinkSync(cacheDb + suffix);
+    }
     console.log(chalk.yellow('  ⟳ Cache cleared (--no-cache)'));
   }
 }
