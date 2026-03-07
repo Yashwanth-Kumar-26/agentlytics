@@ -32,6 +32,12 @@ npx agentlytics
 
 Opens at **http://localhost:4637**. Requires Node.js ≥ 18, macOS.
 
+To only build the cache database without starting the server:
+
+```bash
+npx agentlytics --collect
+```
+
 For local development, run `npm run dev` from the repo root. That starts both the backend on `http://localhost:4637` and the Vite frontend on `http://localhost:5173`.
 
 ## Features
