@@ -182,6 +182,7 @@ function getComposerBubbles(globalDb, composerId) {
 function bubblesToMessages(bubbles) {
   const messages = [];
   for (const b of bubbles) {
+    if (!b) continue;
     const type = b.type; // 1=user, 2=assistant
     if (type === 1) {
       const text = b.text || '';

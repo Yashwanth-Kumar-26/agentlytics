@@ -7,7 +7,7 @@ const { calculateCost, getModelPricing, normalizeModelName } = require('./pricin
 
 const CACHE_DIR = path.join(os.homedir(), '.agentlytics');
 const CACHE_DB = path.join(CACHE_DIR, 'cache.db');
-const SCHEMA_VERSION = 4; // bump this when schema changes to auto-revalidate
+const SCHEMA_VERSION = 5; // bump this when schema changes to auto-revalidate
 
 let db = null;
 
@@ -516,7 +516,26 @@ function getCachedChat(id) {
   if (!chat) return null;
 
   const stats = db.prepare('SELECT * FROM chat_stats WHERE chat_id = ?').get(chat.id);
-  const messages = db.prepare('SELECT role, content, model, input_tokens, output_tokens FROM messages WHERE chat_id = ? ORDER BY seq').all(chat.id);
+  let messages = db.prepare('SELECT role, content, model, input_tokens, output_tokens FROM messages WHERE chat_id = ? ORDER BY seq').all(chat.id);
+
+  // If no cached messages, try fetching live from the editor
+  if (messages.length === 0 && !chat.encrypted) {
+    try {
+      const meta = JSON.parse(chat._meta || '{}');
+      const reconstructed = {
+        composerId: chat.id, source: chat.source, name: chat.name, mode: chat.mode,
+        folder: chat.folder, createdAt: chat.created_at, lastUpdatedAt: chat.last_updated_at,
+        encrypted: !!chat.encrypted, bubbleCount: chat.bubble_count,
+        ...meta,
+      };
+      const liveMessages = getMessages(reconstructed);
+      if (liveMessages && liveMessages.length > 0) {
+        // Store for next time
+        try { analyzeAndStore(reconstructed); } catch {}
+        messages = db.prepare('SELECT role, content, model, input_tokens, output_tokens FROM messages WHERE chat_id = ? ORDER BY seq').all(chat.id);
+      }
+    } catch {}
+  }
 
   let parsedStats = null;
   if (stats) {
