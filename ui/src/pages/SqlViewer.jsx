@@ -138,11 +138,11 @@ export default function SqlViewer() {
         <div className="flex items-center gap-2">
           <Database size={16} style={txtStyle} />
           <h1 className="text-sm font-semibold" style={txtStyle}>SQL Viewer</h1>
-          <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ ...txt2Style, background: 'var(--c-bg2)' }}>cache.db</span>
+          <span className="text-[11px] px-1.5 py-0.5 rounded" style={{ ...txt2Style, background: 'var(--c-bg2)' }}>cache.db</span>
         </div>
         <button
           onClick={() => setShowSchema(!showSchema)}
-          className="flex items-center gap-1 text-[11px] px-2 py-1 rounded transition hover:bg-[var(--c-card)]"
+          className="flex items-center gap-1 text-[12px] px-2 py-1 rounded transition hover:bg-[var(--c-card)]"
           style={txt2Style}
         >
           <Table2 size={12} />
@@ -153,7 +153,7 @@ export default function SqlViewer() {
 
       {/* Schema panel */}
       {showSchema && schema && (
-        <div className="rounded-lg p-3 space-y-2 text-[11px]" style={cardBg}>
+        <div className="rounded-lg p-3 space-y-2 text-[12px]" style={cardBg}>
           <div className="flex flex-wrap gap-4">
             {schema.tables.map(table => (
               <div key={table} className="min-w-[180px]">
@@ -162,8 +162,8 @@ export default function SqlViewer() {
                   {schema.schema[table]?.map(col => (
                     <div key={col.name} className="flex gap-2" style={txt2Style}>
                       <span style={txtStyle}>{col.name}</span>
-                      <span className="text-[10px] opacity-60">{col.type}</span>
-                      {col.pk ? <span className="text-[9px] px-1 rounded" style={{ background: '#6366f133', color: '#6366f1' }}>PK</span> : null}
+                      <span className="text-[11px] opacity-60">{col.type}</span>
+                      {col.pk ? <span className="text-[10px] px-1 rounded" style={{ background: '#6366f133', color: '#6366f1' }}>PK</span> : null}
                     </div>
                   ))}
                 </div>
@@ -179,7 +179,7 @@ export default function SqlViewer() {
           <button
             key={i}
             onClick={() => setSql(q.sql)}
-            className="text-[10px] px-2 py-0.5 rounded transition hover:bg-[var(--c-card)]"
+            className="text-[11px] px-2 py-0.5 rounded transition hover:bg-[var(--c-card)]"
             style={{ ...txt2Style, border: '1px solid var(--c-border)' }}
           >
             {q.label}
@@ -190,9 +190,9 @@ export default function SqlViewer() {
       {/* SQL editor */}
       <div className="rounded-lg overflow-hidden" style={cardBg}>
         <div className="flex items-center justify-between px-3 py-1.5" style={{ borderBottom: '1px solid var(--c-border)' }}>
-          <span className="text-[10px] font-mono" style={txt2Style}>SQL</span>
+          <span className="text-[11px] font-mono" style={txt2Style}>SQL</span>
           <div className="flex items-center gap-1">
-            <span className="text-[10px]" style={txt2Style}>⌘+Enter to run</span>
+            <span className="text-[11px]" style={txt2Style}>⌘+Enter to run</span>
           </div>
         </div>
         <textarea
@@ -209,14 +209,14 @@ export default function SqlViewer() {
           <button
             onClick={runQuery}
             disabled={loading || !sql.trim()}
-            className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-medium rounded transition"
+            className="flex items-center gap-1.5 px-3 py-1 text-[12px] font-medium rounded transition"
             style={{ background: '#6366f1', color: '#fff', opacity: loading ? 0.5 : 1 }}
           >
             <Play size={11} />
             {loading ? 'Running...' : 'Run Query'}
           </button>
           {elapsed && result && (
-            <span className="text-[10px]" style={txt2Style}>
+            <span className="text-[11px]" style={txt2Style}>
               {result.count} row{result.count !== 1 ? 's' : ''} in {elapsed}ms
             </span>
           )}
@@ -235,7 +235,7 @@ export default function SqlViewer() {
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg px-3 py-2 text-[11px]" style={{ background: '#ef444420', border: '1px solid #ef444440', color: '#ef4444' }}>
+        <div className="rounded-lg px-3 py-2 text-[12px]" style={{ background: '#ef444420', border: '1px solid #ef444440', color: '#ef4444' }}>
           {error}
         </div>
       )}
@@ -244,7 +244,7 @@ export default function SqlViewer() {
       {result && result.rows.length > 0 && (
         <div className="rounded-lg overflow-hidden" style={cardBg}>
           <div className="overflow-x-auto" style={{ maxHeight: 400 }}>
-            <table className="w-full text-[11px]" style={{ borderCollapse: 'collapse' }}>
+            <table className="w-full text-[12px]" style={{ borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--c-border)' }}>
                   {result.columns.map(col => (
@@ -271,7 +271,7 @@ export default function SqlViewer() {
       )}
 
       {result && result.rows.length === 0 && (
-        <div className="rounded-lg px-3 py-6 text-center text-[11px]" style={{ ...cardBg, ...txt2Style }}>
+        <div className="rounded-lg px-3 py-6 text-center text-[12px]" style={{ ...cardBg, ...txt2Style }}>
           Query returned 0 rows
         </div>
       )}
@@ -280,7 +280,7 @@ export default function SqlViewer() {
       {chartData && (
         <div className="rounded-lg p-4" style={cardBg}>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-[11px] font-semibold" style={txtStyle}>Visualization</span>
+            <span className="text-[12px] font-semibold" style={txtStyle}>Visualization</span>
             <div className="flex gap-0.5 ml-2" style={{ border: '1px solid var(--c-border)', borderRadius: 6 }}>
               {[
                 { type: 'bar', icon: BarChart3 },

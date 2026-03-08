@@ -52,7 +52,7 @@ export function ToolArgsDiff({ args }) {
   const oldLines = (old || '').split('\n').slice(0, maxLines)
   const newLines = (nw || '').split('\n').slice(0, maxLines)
   return (
-    <div className="mt-1.5 text-[9px] font-mono overflow-x-auto" style={{ border: '1px solid var(--c-border)' }}>
+    <div className="mt-1.5 text-[10px] font-mono overflow-x-auto" style={{ border: '1px solid var(--c-border)' }}>
       {(args.file_path || args.TargetFile) && (
         <div className="px-2 py-0.5" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text)' }}>{args.file_path || args.TargetFile}</div>
       )}
@@ -85,7 +85,7 @@ export function ToolArgsDetail({ args }) {
   const query = args.Query || args.query || args.search_term || null
   const url = args.Url || args.url || null
   return (
-    <div className="mt-1.5 text-[9px] font-mono overflow-x-auto" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
+    <div className="mt-1.5 text-[10px] font-mono overflow-x-auto" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
       {file && <div className="px-2 py-0.5" style={{ color: 'var(--c-text)' }}>file: {file}</div>}
       {cmd && <div className="px-2 py-0.5" style={{ color: 'var(--c-text)' }}>cmd: {cmd}</div>}
       {query && <div className="px-2 py-0.5" style={{ color: 'var(--c-text)' }}>query: {query}</div>}
@@ -101,7 +101,7 @@ export function ToolCallBlock({ name, args, detail }) {
   const [open, setOpen] = useState(false)
   const hasDetail = detail && Object.keys(detail).length > 0
   return (
-    <div className="my-1 px-2.5 py-1.5 text-[10px]" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
+    <div className="my-1 px-2.5 py-1.5 text-[11px]" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => hasDetail && setOpen(!open)}>
         {hasDetail
           ? (open ? <ChevronDown size={10} style={{ color: '#a78bfa' }} /> : <ChevronRight size={10} style={{ color: '#a78bfa' }} />)
@@ -121,13 +121,13 @@ export function ToolResultBlock({ name, preview }) {
   const isNoisy = preview.length > 120 || preview.startsWith('{') || preview.includes('contentId')
   const short = isNoisy ? `${name} completed` : preview.substring(0, 120)
   return (
-    <div className="my-1 px-2.5 py-1.5 text-[10px]" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
+    <div className="my-1 px-2.5 py-1.5 text-[11px]" style={{ background: 'var(--c-code-bg)', border: '1px solid var(--c-border)' }}>
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => preview && setOpen(!open)}>
         <CheckCircle size={10} style={{ color: '#34d399' }} />
         <span className="truncate" style={{ color: 'var(--c-text)' }}>{short}</span>
         {isNoisy && preview && <span style={{ color: 'var(--c-text3)' }}>{open ? '[-]' : '[+]'}</span>}
       </div>
-      {open && <pre className="mt-1 text-[9px] overflow-x-auto whitespace-pre-wrap break-all" style={{ color: 'var(--c-text2)' }}>{preview}</pre>}
+      {open && <pre className="mt-1 text-[10px] overflow-x-auto whitespace-pre-wrap break-all" style={{ color: 'var(--c-text2)' }}>{preview}</pre>}
     </div>
   )
 }

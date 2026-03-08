@@ -104,7 +104,7 @@ export default function ProjectDetail() {
         <div className="flex items-start gap-3">
           <button
             onClick={() => navigate('/projects')}
-            className="flex items-center gap-1 text-[11px] transition mt-0.5 flex-shrink-0"
+            className="flex items-center gap-1 text-[12px] transition mt-0.5 flex-shrink-0"
             style={{ color: 'var(--c-text3)' }}
           >
             <ArrowLeft size={12} />
@@ -112,7 +112,7 @@ export default function ProjectDetail() {
           <FolderOpen size={18} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--c-accent)' }} />
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold truncate" style={{ color: 'var(--c-white)' }}>{project.name}</h1>
-            <div className="text-[10px] truncate" style={{ color: 'var(--c-text3)' }}>{project.folder}</div>
+            <div className="text-[11px] truncate" style={{ color: 'var(--c-text3)' }}>{project.folder}</div>
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {editorEntries.map(([e]) => (
@@ -120,7 +120,7 @@ export default function ProjectDetail() {
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-4 mt-3 pt-3 text-[10px]" style={{ borderTop: '1px solid var(--c-border)' }}>
+        <div className="flex items-center gap-4 mt-3 pt-3 text-[11px]" style={{ borderTop: '1px solid var(--c-border)' }}>
           <div className="flex items-center gap-1" style={{ color: 'var(--c-text3)' }}>
             <Calendar size={9} />
             <span>{formatDate(project.firstSeen)}</span>
@@ -169,11 +169,11 @@ export default function ProjectDetail() {
                     className="accent-[var(--c-accent)] w-3 h-3 flex-shrink-0 cursor-pointer"
                   />
                   <EditorIcon source={e} size={11} />
-                  <span className="text-[10px] truncate flex-1 cursor-pointer select-none" onClick={() => toggleEditor(e)} style={{ color: checked ? 'var(--c-text2)' : 'var(--c-text3)', opacity: checked ? 1 : 0.4 }}>{editorLabel(e)}</span>
+                  <span className="text-[11px] truncate flex-1 cursor-pointer select-none" onClick={() => toggleEditor(e)} style={{ color: checked ? 'var(--c-text2)' : 'var(--c-text3)', opacity: checked ? 1 : 0.4 }}>{editorLabel(e)}</span>
                   <div className="w-16 h-3 rounded-sm overflow-hidden" style={{ background: 'var(--c-code-bg)' }}>
                     <div className="h-full rounded-sm transition-all" style={{ width: `${(count / fMaxEditorCount * 100).toFixed(0)}%`, background: checked ? editorColor(e) : 'var(--c-text3)', opacity: checked ? 1 : 0.2 }} />
                   </div>
-                  <span className="text-[10px] w-6 text-right font-bold" style={{ color: checked ? 'var(--c-white)' : 'var(--c-text3)', opacity: checked ? 1 : 0.4 }}>{count}</span>
+                  <span className="text-[11px] w-6 text-right font-bold" style={{ color: checked ? 'var(--c-white)' : 'var(--c-text3)', opacity: checked ? 1 : 0.4 }}>{count}</span>
                 </div>
               )
             })}
@@ -199,7 +199,7 @@ export default function ProjectDetail() {
                 }}
               />
             </div>
-          ) : <div className="text-[10px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no model data</div>}
+          ) : <div className="text-[11px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no model data</div>}
         </div>
 
         {/* Top tools horizontal bar */}
@@ -226,7 +226,7 @@ export default function ProjectDetail() {
                 }}
               />
             </div>
-          ) : <div className="text-[10px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no tool data</div>}
+          ) : <div className="text-[11px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no tool data</div>}
         </div>
       </div>
 
@@ -241,16 +241,16 @@ export default function ProjectDetail() {
               placeholder="filter sessions..."
               value={chatSearch}
               onChange={e => setChatSearch(e.target.value)}
-              className="w-full pl-7 pr-3 py-1 text-[11px] outline-none rounded-sm"
+              className="w-full pl-7 pr-3 py-1 text-[12px] outline-none rounded-sm"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             />
           </div>
         </div>
 
         <div className="card overflow-hidden">
-          <table className="w-full text-[11px]">
+          <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-[9px] uppercase tracking-wider" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text3)' }}>
+              <tr className="text-[10px] uppercase tracking-wider" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text3)' }}>
                 <th className="text-left py-2 px-3 font-medium">editor</th>
                 <th className="text-left py-2 px-3 font-medium">name</th>
                 <th className="text-left py-2 px-3 font-medium">mode</th>
@@ -277,7 +277,7 @@ export default function ProjectDetail() {
                   </td>
                   <td className="py-2 px-3 font-medium truncate max-w-[280px]" style={{ color: 'var(--c-white)' }}>
                     {c.name || <span style={{ color: 'var(--c-text3)' }}>Untitled</span>}
-                    {c.encrypted && <span className="ml-1.5 text-[9px] text-yellow-500/60">locked</span>}
+                    {c.encrypted && <span className="ml-1.5 text-[10px] text-yellow-500/60">locked</span>}
                   </td>
                   <td className="py-2 px-3" style={{ color: 'var(--c-text2)' }}>{c.mode || ''}</td>
                   <td className="py-2 px-3 font-mono truncate max-w-[150px]" style={{ color: 'var(--c-text2)' }} title={c.topModel || ''}>{c.topModel || ''}</td>

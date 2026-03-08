@@ -1,41 +1,55 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <!-- Terminal window -->
-  <rect x="32" y="32" width="448" height="448" rx="40" fill="#111" stroke="#333" stroke-width="4"/>
-  <!-- Title bar -->
-  <rect x="32" y="32" width="448" height="56" rx="40" fill="#1a1a1a"/>
-  <rect x="32" y="68" width="448" height="20" fill="#1a1a1a"/>
-  <!-- Traffic lights -->
-  <circle cx="72" cy="60" r="8" fill="#333"/>
-  <circle cx="100" cy="60" r="8" fill="#333"/>
-  <circle cx="128" cy="60" r="8" fill="#333"/>
-  <!-- Prompt cursor blink -->
-  <text x="68" y="140" font-family="monospace" font-size="28" fill="#555">$</text>
-  <text x="96" y="140" font-family="monospace" font-size="24" fill="#888">npx agentlytics</text>
-  <!-- Chart bars -->
-  <rect x="88"  y="340" width="44" height="100" rx="4" fill="#e5e5e5" opacity="0.5"/>
-  <rect x="152" y="280" width="44" height="160" rx="4" fill="#e5e5e5" opacity="0.65"/>
-  <rect x="216" y="220" width="44" height="220" rx="4" fill="#fff" opacity="0.85"/>
-  <rect x="280" y="300" width="44" height="140" rx="4" fill="#e5e5e5" opacity="0.65"/>
-  <rect x="344" y="250" width="44" height="190" rx="4" fill="#e5e5e5" opacity="0.5"/>
-  <rect x="408" y="190" width="44" height="250" rx="4" fill="#fff" opacity="0.85"/>
-  <!-- Trend line -->
-  <polyline points="110,320 174,258 238,198 302,278 366,228 430,168"
-    stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
-  <!-- Data points -->
-  <circle cx="110" cy="320" r="6" fill="#fff"/>
-  <circle cx="174" cy="258" r="6" fill="#fff"/>
-  <circle cx="238" cy="198" r="6" fill="#fff"/>
-  <circle cx="302" cy="278" r="6" fill="#fff"/>
-  <circle cx="366" cy="228" r="6" fill="#fff"/>
-  <circle cx="430" cy="168" r="6" fill="#fff"/>
-  <!-- Baseline -->
-  <line x1="68" y1="440" x2="460" y2="440" stroke="#333" stroke-width="2"/>
-  <!-- Y-axis -->
-  <line x1="68" y1="160" x2="68" y2="440" stroke="#333" stroke-width="2"/>
-  <!-- Axis ticks -->
-  <line x1="64" y1="440" x2="68" y2="440" stroke="#555" stroke-width="1.5"/>
-  <line x1="64" y1="370" x2="68" y2="370" stroke="#555" stroke-width="1.5"/>
-  <line x1="64" y1="300" x2="68" y2="300" stroke="#555" stroke-width="1.5"/>
-  <line x1="64" y1="230" x2="68" y2="230" stroke="#555" stroke-width="1.5"/>
-  <line x1="64" y1="160" x2="68" y2="160" stroke="#555" stroke-width="1.5"/>
+  <!-- Dark background -->
+  <rect width="512" height="512" rx="96" fill="#0f0f13"/>
+
+  <!-- TOP-LEFT: Lucide "bot" — indigo -->
+  <g transform="translate(26, 26) scale(8.5)" stroke="#818cf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M12 8V4H8"/>
+    <rect width="16" height="12" x="4" y="8" rx="2"/>
+    <path d="M2 14h2"/>
+    <path d="M20 14h2"/>
+    <path d="M15 13v2"/>
+    <path d="M9 13v2"/>
+  </g>
+
+  <!-- TOP-RIGHT: Lucide "bot-message-square" — pink -->
+  <g transform="translate(282, 31) scale(8.5)" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M12 6V2H8"/>
+    <path d="M15 11v2"/>
+    <path d="M2 12h2"/>
+    <path d="M20 12h2"/>
+    <path d="M20 16a2 2 0 0 1-2 2H8.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 4 20.286V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>
+    <path d="M9 11v2"/>
+  </g>
+
+  <!-- BOTTOM-LEFT: Tabler "robot" — emerald -->
+  <g transform="translate(20, 282) scale(9)" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M6 6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-8a2 2 0 0 1-2-2l0-4"/>
+    <path d="M12 2v2"/>
+    <path d="M9 12v9"/>
+    <path d="M15 12v9"/>
+    <path d="M5 16l4-2"/>
+    <path d="M15 14l4 2"/>
+    <path d="M9 18h6"/>
+    <path d="M10 8v.01"/>
+    <path d="M14 8v.01"/>
+  </g>
+
+  <!-- BOTTOM-RIGHT: Lucide "cpu" (AI brain) — amber -->
+  <g transform="translate(282, 282) scale(8.5)" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M12 20v2"/>
+    <path d="M12 2v2"/>
+    <path d="M17 20v2"/>
+    <path d="M17 2v2"/>
+    <path d="M2 12h2"/>
+    <path d="M2 17h2"/>
+    <path d="M2 7h2"/>
+    <path d="M20 12h2"/>
+    <path d="M20 17h2"/>
+    <path d="M20 7h2"/>
+    <path d="M7 20v2"/>
+    <path d="M7 2v2"/>
+    <rect x="4" y="4" width="16" height="16" rx="2"/>
+    <rect x="8" y="8" width="8" height="8" rx="1"/>
+  </g>
 </svg>

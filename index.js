@@ -123,9 +123,11 @@ function getLocalIp() {
   return 'localhost';
 }
 
+// ── ASCII banner ─────────────────────────────────────────
+const c1 = chalk.hex('#818cf8'), c2 = chalk.hex('#f472b6'), c3 = chalk.hex('#34d399'), c4 = chalk.hex('#fbbf24');
 console.log('');
-console.log(chalk.bold('  ⚡ Agentlytics'));
-console.log(chalk.dim('  Comprehensive analytics for your AI coding agents'));
+console.log(`  ${c1('(● ●)')} ${c2('[● ●]')}   ${chalk.bold('Agentlytics')}`);
+console.log(`  ${c3('{● ●}')} ${c4('<● ●>')}   ${chalk.dim('Unified analytics for your AI coding agents')}`);
 if (collectOnly) console.log(chalk.cyan('  ⟳ Collect-only mode (no server)'));
 console.log('');
 
@@ -208,18 +210,74 @@ const WINDSURF_VARIANTS = [
 })();
 
 // Initialize cache DB
-console.log(chalk.dim('  Initializing cache database...'));
 cache.initDb();
 
-// Scan all editors and populate cache
-console.log(chalk.dim('  Scanning editors: Cursor, Windsurf, Claude Code, VS Code, Zed, Antigravity, OpenCode, Codex, Gemini CLI, Copilot CLI, Cursor Agent, Command Code'));
-const startTime = Date.now();
-const result = cache.scanAll((progress) => {
-  process.stdout.write(chalk.dim(`\r  Scanning: ${progress.scanned}/${progress.total} chats (${progress.analyzed} analyzed, ${progress.skipped} cached)`));
-});
-const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+// ── Detect editors & collect sessions ───────────────────────
+const { editors: editorModules } = require('./editors');
+const EDITOR_DISPLAY = [
+  ['cursor', 'Cursor'],
+  ['windsurf', 'Windsurf'],
+  ['windsurf-next', 'Windsurf Next'],
+  ['antigravity', 'Antigravity'],
+  ['claude-code', 'Claude Code'],
+  ['vscode', 'VS Code'],
+  ['vscode-insiders', 'VS Code Insiders'],
+  ['zed', 'Zed'],
+  ['opencode', 'OpenCode'],
+  ['codex', 'Codex'],
+  ['gemini-cli', 'Gemini CLI'],
+  ['copilot-cli', 'Copilot CLI'],
+  ['cursor-agent', 'Cursor Agent'],
+  ['commandcode', 'Command Code'],
+];
+
+console.log(chalk.dim('  Looking for AI coding agents...'));
+const allChats = [];
+for (const editor of editorModules) {
+  try {
+    const chats = editor.getChats();
+    allChats.push(...chats);
+  } catch { /* skip broken adapters */ }
+}
+allChats.sort((a, b) => (b.lastUpdatedAt || b.createdAt || 0) - (a.lastUpdatedAt || a.createdAt || 0));
+
+// Count per source
+const bySource = {};
+for (const chat of allChats) bySource[chat.source] = (bySource[chat.source] || 0) + 1;
+
+for (const [src, label] of EDITOR_DISPLAY) {
+  const count = bySource[src] || 0;
+  if (count > 0) {
+    console.log(`  ${chalk.green('✓')} ${chalk.bold(label.padEnd(18))} ${chalk.dim(`${count} session${count === 1 ? '' : 's'}`)}`);
+  } else {
+    console.log(`  ${chalk.dim('–')} ${chalk.dim(label.padEnd(18) + '–')}`);
+  }
+}
 console.log('');
-console.log(chalk.green(`  ✓ Cache ready: ${result.total} chats, ${result.analyzed} analyzed, ${result.skipped} cached (${elapsed}s)`));
+
+// ── Analyze sessions with robot animation ──────────────────
+const logUpdate = require('log-update');
+const BOT_STYLES = [
+  { l: '(', r: ')', color: '#818cf8' },
+  { l: '[', r: ']', color: '#f472b6' },
+  { l: '{', r: '}', color: '#34d399' },
+  { l: '<', r: '>', color: '#fbbf24' },
+];
+let tick = 0;
+
+const startTime = Date.now();
+const result = cache.scanAll((p) => {
+  tick++;
+  if (tick % 5 !== 0) return;
+  const frame = Math.floor(tick / 40);
+  const b = BOT_STYLES[frame % 4];
+  const dots = '.'.repeat((Math.floor(tick / 10) % 3) + 1).padEnd(3);
+  logUpdate(`  ${chalk.hex(b.color)(`${b.l}● ●${b.r}`)}  ${chalk.dim(`Analyzing${dots} ${p.scanned}/${p.total}`)}`);
+}, { chats: allChats });
+const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+const allFaces = BOT_STYLES.map(b => chalk.hex(b.color)(`${b.l}● ●${b.r}`)).join(' ');
+logUpdate(`  ${allFaces}  ${chalk.green(`✓ ${result.analyzed} analyzed, ${result.skipped} cached (${elapsed}s)`)}`);
+logUpdate.done();
 console.log('');
 
 // In collect-only mode, exit after cache is built
@@ -235,7 +293,12 @@ const app = require('./server');
 app.listen(PORT, () => {
   const url = `http://localhost:${PORT}`;
   console.log(chalk.green(`  ✓ Dashboard ready at ${chalk.bold.white(url)}`));
-  console.log(chalk.dim(`  Press Ctrl+C to stop\n`));
+  console.log('');
+  console.log(chalk.dim('  💡 Share sessions with your team:'));
+  console.log(chalk.dim(`     npx agentlytics --relay                        Start a relay server`));
+  console.log(chalk.dim(`     npx agentlytics --join <host:port> --username   Join a relay server`));
+  console.log('');
+  console.log(chalk.dim('  Press Ctrl+C to stop\n'));
 
   // Auto-open browser
   const open = require('open');

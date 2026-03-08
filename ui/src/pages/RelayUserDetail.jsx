@@ -73,7 +73,7 @@ function SessionSidebar({ sessions, projects, selectedChat, onSelectChat }) {
     >
       <EditorIcon source={s.source} size={10} />
       <div className="flex-1 min-w-0">
-        <div className="text-[10px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{s.name || 'Untitled'}</div>
+        <div className="text-[11px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{s.name || 'Untitled'}</div>
         <div className="flex items-center gap-1 text-[8px]" style={{ color: 'var(--c-text3)' }}>
           {s.totalMessages > 0 && <span>{s.totalMessages}m</span>}
           {s.totalMessages > 0 && s.lastUpdatedAt && <span>·</span>}
@@ -87,8 +87,8 @@ function SessionSidebar({ sessions, projects, selectedChat, onSelectChat }) {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--c-border)' }}>
         <Hash size={12} style={{ color: 'var(--c-accent)' }} />
-        <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Sessions</span>
-        <span className="text-[9px] ml-auto" style={{ color: 'var(--c-text3)' }}>{sessions.length}</span>
+        <span className="text-[12px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Sessions</span>
+        <span className="text-[10px] ml-auto" style={{ color: 'var(--c-text3)' }}>{sessions.length}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-thin py-1">
@@ -105,7 +105,7 @@ function SessionSidebar({ sessions, projects, selectedChat, onSelectChat }) {
               >
                 {isCollapsed ? <ChevronRight size={10} style={{ color: 'var(--c-text3)' }} /> : <ChevronDown size={10} style={{ color: 'var(--c-text3)' }} />}
                 <FolderOpen size={10} style={{ color: '#818cf8' }} />
-                <span className="text-[10px] font-medium truncate flex-1" style={{ color: 'var(--c-text2)' }} title={folder}>{folderName}</span>
+                <span className="text-[11px] font-medium truncate flex-1" style={{ color: 'var(--c-text2)' }} title={folder}>{folderName}</span>
                 <span className="text-[8px]" style={{ color: 'var(--c-text3)' }}>{list.length}</span>
               </div>
               {!isCollapsed && (
@@ -120,7 +120,7 @@ function SessionSidebar({ sessions, projects, selectedChat, onSelectChat }) {
         {grouped.noProject.length > 0 && (
           <div>
             {grouped.sorted.length > 0 && (
-              <div className="px-2 py-1.5 text-[9px] uppercase tracking-wider" style={{ color: 'var(--c-text3)' }}>no project</div>
+              <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider" style={{ color: 'var(--c-text3)' }}>no project</div>
             )}
             <div className={grouped.sorted.length > 0 ? 'pl-1' : ''}>
               {grouped.noProject.map(s => <SessionItem key={s.id} s={s} />)}
@@ -270,13 +270,13 @@ export default function RelayUserDetail() {
           <div className="card p-3">
             <div className="flex items-center justify-between mb-2">
               <SectionTitle>token usage</SectionTitle>
-              <span className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(totalTokens)} total</span>
+              <span className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(totalTokens)} total</span>
             </div>
             <ProportionBar height={10} segments={[
               { label: 'Input', value: totalInputTokens, color: '#6366f1' },
               { label: 'Output', value: totalOutputTokens, color: '#a78bfa' },
             ]} />
-            <div className="flex items-center gap-4 mt-1.5 text-[9px]">
+            <div className="flex items-center gap-4 mt-1.5 text-[10px]">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#6366f1' }} /> input {formatNumber(totalInputTokens)}</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#a78bfa' }} /> output {formatNumber(totalOutputTokens)}</span>
             </div>
@@ -363,20 +363,20 @@ export default function RelayUserDetail() {
                 <div key={folder} className="card px-3 py-2.5">
                   <div className="flex items-center gap-1.5 mb-1.5">
                     <FolderOpen size={11} style={{ color: '#818cf8' }} />
-                    <span className="text-[11px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{folder.split('/').pop()}</span>
+                    <span className="text-[12px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{folder.split('/').pop()}</span>
                   </div>
                   <div className="text-[8px] truncate mb-2" style={{ color: 'var(--c-text3)' }}>{folder}</div>
                   <div className="grid grid-cols-3 gap-1 text-center mb-1.5">
                     <div className="p-1 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                      <div className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{info.count}</div>
+                      <div className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{info.count}</div>
                       <div className="text-[7px]" style={{ color: 'var(--c-text3)' }}>sessions</div>
                     </div>
                     <div className="p-1 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                      <div className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(info.messages)}</div>
+                      <div className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(info.messages)}</div>
                       <div className="text-[7px]" style={{ color: 'var(--c-text3)' }}>messages</div>
                     </div>
                     <div className="p-1 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                      <div className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(info.tokens)}</div>
+                      <div className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(info.tokens)}</div>
                       <div className="text-[7px]" style={{ color: 'var(--c-text3)' }}>tokens</div>
                     </div>
                   </div>
@@ -396,7 +396,7 @@ export default function RelayUserDetail() {
             <SectionTitle>top tools</SectionTitle>
             <div className="flex flex-wrap gap-1.5 mt-1">
               {tools.map(([name, count]) => (
-                <span key={name} className="text-[9px] px-2 py-1 rounded-sm" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text2)' }}>
+                <span key={name} className="text-[10px] px-2 py-1 rounded-sm" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text2)' }}>
                   {name} <span style={{ color: 'var(--c-text3)' }}>×{count}</span>
                 </span>
               ))}
@@ -408,7 +408,7 @@ export default function RelayUserDetail() {
         <div className="card p-3">
           <SectionTitle>recent sessions</SectionTitle>
           <div className="max-h-[400px] overflow-y-auto scrollbar-thin">
-            <table className="w-full text-[11px]">
+            <table className="w-full text-[12px]">
               <tbody>
                 {sessions.slice(0, 50).map(s => (
                   <tr
@@ -421,10 +421,10 @@ export default function RelayUserDetail() {
                   >
                     <td className="py-2 px-2 w-[24px]"><EditorIcon source={s.source} size={11} /></td>
                     <td className="py-2 px-2">
-                      <div className="text-[10px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{s.name || 'Untitled'}</div>
-                      <div className="text-[9px] truncate" style={{ color: 'var(--c-text3)' }}>{s.folder ? s.folder.split('/').pop() : ''}</div>
+                      <div className="text-[11px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{s.name || 'Untitled'}</div>
+                      <div className="text-[10px] truncate" style={{ color: 'var(--c-text3)' }}>{s.folder ? s.folder.split('/').pop() : ''}</div>
                     </td>
-                    <td className="py-2 px-2 text-[9px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>
+                    <td className="py-2 px-2 text-[10px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>
                       {s.totalMessages > 0 && <span>{s.totalMessages}m</span>}
                     </td>
                     <td className="py-2 px-2">
@@ -432,7 +432,7 @@ export default function RelayUserDetail() {
                         <span className="text-[8px] px-1.5 py-0.5 rounded-sm" style={{ background: 'rgba(168,85,247,0.1)', color: '#a855f7' }}>{s.mode}</span>
                       )}
                     </td>
-                    <td className="py-2 px-2 text-[9px] whitespace-nowrap text-right" style={{ color: 'var(--c-text3)' }}>
+                    <td className="py-2 px-2 text-[10px] whitespace-nowrap text-right" style={{ color: 'var(--c-text3)' }}>
                       {formatDate(s.lastUpdatedAt)}
                     </td>
                   </tr>
@@ -458,7 +458,7 @@ export default function RelayUserDetail() {
         fetchFn={fetchFn}
         username={username}
         extraHeader={
-          <span className="text-[10px] font-medium px-1.5 py-0.5 shrink-0" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+          <span className="text-[11px] font-medium px-1.5 py-0.5 shrink-0" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
             {username}
           </span>
         }

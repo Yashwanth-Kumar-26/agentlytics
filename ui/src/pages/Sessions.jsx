@@ -250,15 +250,15 @@ export default function Sessions({ overview }) {
       <td className="py-2 px-3">
         <span className="inline-flex items-center gap-1.5">
           <EditorIcon source={c.source} size={12} />
-          <span className="text-[11px]" style={{ color: 'var(--c-text2)' }}>{editorLabel(c.source)}</span>
+          <span className="text-[12px]" style={{ color: 'var(--c-text2)' }}>{editorLabel(c.source)}</span>
         </span>
       </td>
-      <td className="py-2 px-3 font-medium truncate max-w-[280px] text-[11px]" style={{ color: 'var(--c-white)' }}>
+      <td className="py-2 px-3 font-medium truncate max-w-[280px] text-[12px]" style={{ color: 'var(--c-white)' }}>
         {c.name || <span style={{ color: 'var(--c-text3)' }}>Untitled</span>}
-        {c.encrypted && <span className="ml-1.5 text-[9px] text-yellow-500/60">locked</span>}
+        {c.encrypted && <span className="ml-1.5 text-[10px] text-yellow-500/60">locked</span>}
       </td>
       {!groupByProject && (
-        <td className="py-2 px-3 truncate max-w-[160px] text-[11px]" style={{ color: 'var(--c-text2)' }} title={c.folder}>
+        <td className="py-2 px-3 truncate max-w-[160px] text-[12px]" style={{ color: 'var(--c-text2)' }} title={c.folder}>
           {c.folder ? (
             <span
               className="cursor-pointer hover:underline"
@@ -268,11 +268,11 @@ export default function Sessions({ overview }) {
           ) : ''}
         </td>
       )}
-      <td className="py-2 px-3 text-[11px]" style={{ color: 'var(--c-text2)' }}>{c.mode || ''}</td>
-      <td className="py-2 px-3 text-[11px] font-mono truncate max-w-[150px]" style={{ color: 'var(--c-text2)' }} title={c.topModel || ''}>
+      <td className="py-2 px-3 text-[12px]" style={{ color: 'var(--c-text2)' }}>{c.mode || ''}</td>
+      <td className="py-2 px-3 text-[12px] font-mono truncate max-w-[150px]" style={{ color: 'var(--c-text2)' }} title={c.topModel || ''}>
         {c.topModel || ''}
       </td>
-      <td className="py-2 px-3 text-[11px]">
+      <td className="py-2 px-3 text-[12px]">
         {c.bubbleCount >= 500 ? (
           <span className="inline-flex items-center gap-0.5 font-bold" style={{ color: '#ef4444' }}>
             <AlertTriangle size={9} />{c.bubbleCount}
@@ -285,7 +285,7 @@ export default function Sessions({ overview }) {
           <span style={{ color: 'var(--c-text3)' }}>{c.bubbleCount || 0}</span>
         )}
       </td>
-      <td className="py-2 px-3 text-[11px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>
+      <td className="py-2 px-3 text-[12px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>
         {formatDate(c.lastUpdatedAt || c.createdAt)}
       </td>
     </tr>
@@ -342,7 +342,7 @@ export default function Sessions({ overview }) {
                     },
                   }}
                 />
-              ) : <div className="text-[10px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no model data</div>}
+              ) : <div className="text-[11px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no model data</div>}
             </div>
           </div>
           <div className="card p-3">
@@ -367,7 +367,7 @@ export default function Sessions({ overview }) {
                     plugins: { legend: { display: false }, tooltip: { bodyFont: { family: MONO, size: 10 }, titleFont: { family: MONO, size: 10 } } },
                   }}
                 />
-              ) : <div className="text-[10px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no mode data</div>}
+              ) : <div className="text-[11px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>no mode data</div>}
             </div>
           </div>
         </div>
@@ -379,12 +379,12 @@ export default function Sessions({ overview }) {
           <div className="flex items-center justify-between mb-2">
             <SectionTitle>
               session timeline
-              <span className="ml-2 font-normal text-[9px]" style={{ color: 'var(--c-text3)' }}>(drag to select range)</span>
+              <span className="ml-2 font-normal text-[10px]" style={{ color: 'var(--c-text3)' }}>(drag to select range)</span>
             </SectionTitle>
             {dateRange && (
               <button
                 onClick={() => setDateRange(null)}
-                className="flex items-center gap-1 text-[10px] px-2 py-0.5 transition"
+                className="flex items-center gap-1 text-[11px] px-2 py-0.5 transition"
                 style={{ color: 'var(--c-accent)', border: '1px solid var(--c-border)' }}
               >
                 <X size={10} />
@@ -424,7 +424,7 @@ export default function Sessions({ overview }) {
             <select
               value={editor}
               onChange={e => setEditor(e.target.value)}
-              className="pl-8 pr-3 py-1 text-[11px] outline-none appearance-none cursor-pointer"
+              className="pl-8 pr-3 py-1 text-[12px] outline-none appearance-none cursor-pointer"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             >
               <option value="">All Editors</option>
@@ -440,13 +440,13 @@ export default function Sessions({ overview }) {
               placeholder="search sessions..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-8 pr-3 py-1 text-[11px] outline-none"
+              className="w-full pl-8 pr-3 py-1 text-[12px] outline-none"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             />
           </div>
           <button
             onClick={() => setGroupByProject(!groupByProject)}
-            className="flex items-center gap-1.5 px-3 py-1 text-[11px] transition"
+            className="flex items-center gap-1.5 px-3 py-1 text-[12px] transition"
             style={{
               border: groupByProject ? '1px solid var(--c-accent)' : '1px solid var(--c-border)',
               color: groupByProject ? 'var(--c-accent)' : 'var(--c-text2)',
@@ -456,7 +456,7 @@ export default function Sessions({ overview }) {
             {groupByProject ? <FolderOpen size={13} /> : <List size={13} />}
             {groupByProject ? 'grouped' : 'flat'}
           </button>
-          <span className="text-[10px]" style={{ color: 'var(--c-text3)' }}>
+          <span className="text-[11px]" style={{ color: 'var(--c-text3)' }}>
             {loading ? 'loading...' : `${filtered.length} of ${total}`}
           </span>
         {/* Server-side date range filter */}
@@ -468,7 +468,7 @@ export default function Sessions({ overview }) {
         <div className="card overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-[9px] uppercase tracking-wider" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text3)' }}>
+              <tr className="text-[10px] uppercase tracking-wider" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text3)' }}>
                 <th className="text-left py-2 px-3 font-medium">editor</th>
                 <th className="text-left py-2 px-3 font-medium">name</th>
                 <th className="text-left py-2 px-3 font-medium">project</th>
@@ -500,12 +500,12 @@ export default function Sessions({ overview }) {
                   {isCollapsed ? <ChevronRight size={13} style={{ color: 'var(--c-text3)' }} /> : <ChevronDown size={13} style={{ color: 'var(--c-text3)' }} />}
                   <FolderOpen size={13} style={{ color: 'var(--c-text3)' }} />
                   <span className="text-xs font-medium" style={{ color: 'var(--c-white)' }}>{g.name}</span>
-                  <span className="text-[10px] truncate max-w-[300px]" style={{ color: 'var(--c-text3)' }}>{g.folder !== g.name && g.folder !== '(no project)' ? g.folder : ''}</span>
+                  <span className="text-[11px] truncate max-w-[300px]" style={{ color: 'var(--c-text3)' }}>{g.folder !== g.name && g.folder !== '(no project)' ? g.folder : ''}</span>
                   <span className="ml-auto flex items-center gap-2">
                     {editorSet.slice(0, 5).map(e => (
                       <span key={e} className="w-2 h-2 rounded-full" style={{ background: editorColor(e) }} title={editorLabel(e)} />
                     ))}
-                    <span className="text-[10px]" style={{ color: 'var(--c-text3)' }}>{g.items.length}</span>
+                    <span className="text-[11px]" style={{ color: 'var(--c-text3)' }}>{g.items.length}</span>
                   </span>
                 </div>
                 {!isCollapsed && (

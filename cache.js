@@ -193,7 +193,7 @@ function analyzeAndStore(chat) {
 function scanAll(onProgress, opts = {}) {
   const force = opts.force || false;
   if (force || opts.resetCaches) resetCaches();
-  const chats = getAllChats();
+  const chats = opts.chats || getAllChats();
   const total = chats.length;
   let scanned = 0;
   let analyzed = 0;

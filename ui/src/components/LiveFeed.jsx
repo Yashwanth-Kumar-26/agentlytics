@@ -62,14 +62,14 @@ export default function LiveFeed({ onSessionClick }) {
       {/* Header */}
       <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--c-border)' }}>
         <Radio size={12} style={{ color: '#22c55e' }} />
-        <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Live Feed</span>
+        <span className="text-[12px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Live Feed</span>
         <span className="inline-block w-1.5 h-1.5 rounded-full pulse-dot ml-auto" style={{ background: '#22c55e' }} />
       </div>
 
       {/* Feed */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin">
         {items.length === 0 && (
-          <div className="text-[11px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>
+          <div className="text-[12px] py-8 text-center" style={{ color: 'var(--c-text3)' }}>
             No recent activity
           </div>
         )}
@@ -77,7 +77,7 @@ export default function LiveFeed({ onSessionClick }) {
         {buckets.map((bucket, bi) => (
           <div key={bi}>
             {/* Time separator */}
-            <div className="sticky top-0 px-3 py-1.5 text-[9px] font-medium uppercase tracking-wider" style={{ background: 'var(--c-bg)', color: 'var(--c-text3)', borderBottom: '1px solid var(--c-border)' }}>
+            <div className="sticky top-0 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider" style={{ background: 'var(--c-bg)', color: 'var(--c-text3)', borderBottom: '1px solid var(--c-border)' }}>
               {bucket.label}
             </div>
 
@@ -89,26 +89,26 @@ export default function LiveFeed({ onSessionClick }) {
                 onClick={() => onSessionClick && onSessionClick(item.id, item.username)}
               >
                 {/* Session name */}
-                <div className="text-[11px] font-medium truncate mb-1" style={{ color: 'var(--c-white)' }}>
+                <div className="text-[12px] font-medium truncate mb-1" style={{ color: 'var(--c-white)' }}>
                   {item.name || 'Untitled'}
                 </div>
 
                 {/* User + editor row */}
                 <div className="flex items-center gap-1.5 mb-1">
                   <span
-                    className="text-[9px] font-medium px-1 py-0.5 shrink-0 truncate max-w-[120px]"
+                    className="text-[10px] font-medium px-1 py-0.5 shrink-0 truncate max-w-[120px]"
                     style={{ background: 'rgba(99,102,241,0.12)', color: '#818cf8' }}
                     title={item.username}
                   >
                     {item.username}
                   </span>
                   <EditorDot source={item.source} size={6} />
-                  <span className="text-[9px] truncate" style={{ color: 'var(--c-text2)' }}>{editorLabel(item.source)}</span>
-                  <span className="text-[9px] ml-auto shrink-0" style={{ color: 'var(--c-text3)' }}>{timeLabel(item.lastUpdatedAt)}</span>
+                  <span className="text-[10px] truncate" style={{ color: 'var(--c-text2)' }}>{editorLabel(item.source)}</span>
+                  <span className="text-[10px] ml-auto shrink-0" style={{ color: 'var(--c-text3)' }}>{timeLabel(item.lastUpdatedAt)}</span>
                 </div>
 
                 {/* Meta row */}
-                <div className="flex items-center gap-2 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                   {item.totalMessages > 0 && (
                     <span className="flex items-center gap-0.5">
                       <MessageSquare size={8} /> {item.totalMessages}

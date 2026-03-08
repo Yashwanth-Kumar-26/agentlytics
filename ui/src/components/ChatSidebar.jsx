@@ -77,7 +77,7 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
               <div className="text-sm font-medium truncate" style={{ color: 'var(--c-white)' }}>
                 {chat.name || '(untitled)'}
               </div>
-              <div className="flex items-center gap-2 text-[10px]" style={{ color: 'var(--c-text2)' }}>
+              <div className="flex items-center gap-2 text-[11px]" style={{ color: 'var(--c-text2)' }}>
                 <span className="inline-flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full" style={{ background: editorColor(chat.source) }} />
                   {editorLabel(chat.source)}
@@ -91,7 +91,7 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
             <a
               href={`${BASE}/api/chats/${chat.id}/markdown`}
               download
-              className="flex items-center gap-1 px-2 py-1 text-[10px] transition shrink-0"
+              className="flex items-center gap-1 px-2 py-1 text-[11px] transition shrink-0"
               style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
             >
               <Download size={11} /> .md
@@ -102,7 +102,7 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
 
         {/* Stats row */}
         {chat?.stats && (
-          <div className="flex items-center gap-3 px-4 py-2 text-[10px] shrink-0" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text2)' }}>
+          <div className="flex items-center gap-3 px-4 py-2 text-[11px] shrink-0" style={{ borderBottom: '1px solid var(--c-border)', color: 'var(--c-text2)' }}>
             <span>{chat.stats.totalMessages} msgs</span>
             {chat.stats.toolCalls?.length > 0 && <span>{chat.stats.toolCalls.length} tools</span>}
             {chat.stats.totalInputTokens > 0 && <span>{formatNumber(chat.stats.totalInputTokens)} in</span>}
@@ -125,7 +125,7 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
                 placeholder="Filter messages..."
                 value={msgFilter}
                 onChange={e => setMsgFilter(e.target.value)}
-                className="w-full pl-7 pr-3 py-1 text-[11px] outline-none"
+                className="w-full pl-7 pr-3 py-1 text-[12px] outline-none"
                 style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
               />
             </div>
@@ -135,10 +135,10 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
         {/* Messages */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-thin px-4 py-3 space-y-2">
           {loading && (
-            <div className="text-[11px] py-12 text-center" style={{ color: 'var(--c-text3)' }}>Loading conversation...</div>
+            <div className="text-[12px] py-12 text-center" style={{ color: 'var(--c-text3)' }}>Loading conversation...</div>
           )}
           {!loading && chat && chat.messages.length === 0 && (
-            <div className="text-[11px] py-12 text-center" style={{ color: 'var(--c-text3)' }}>
+            <div className="text-[12px] py-12 text-center" style={{ color: 'var(--c-text3)' }}>
               {chat.encrypted ? '🔒 This conversation is encrypted.' : 'No messages found.'}
             </div>
           )}
@@ -149,7 +149,7 @@ export default function ChatSidebar({ chatId, onClose, fetchFn, extraHeader, use
               const Icon = cfg.icon
               return (
                 <div key={i} className="rounded-r px-3 py-2" style={{ borderLeft: `2px solid ${cfg.borderColor}`, background: cfg.bg }}>
-                  <div className="flex items-center gap-1.5 text-[10px] mb-1" style={{ color: 'var(--c-text2)' }}>
+                  <div className="flex items-center gap-1.5 text-[11px] mb-1" style={{ color: 'var(--c-text2)' }}>
                     <Icon size={11} />
                     <span className="font-medium">{msg.role === 'user' && (username || chat?.username) ? (username || chat.username) : cfg.label}</span>
                     {msg.model && <span className="font-mono" style={{ color: 'var(--c-accent)', opacity: 0.6 }}>· {msg.model}</span>}

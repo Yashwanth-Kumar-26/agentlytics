@@ -16,15 +16,15 @@ function MetricRow({ label, a, b, colorA, colorB }) {
   const max = Math.max(numA, numB, 1)
   return (
     <div className="grid grid-cols-[1fr_100px_100px] gap-x-3 items-center py-0.5" style={{ borderBottom: '1px solid var(--c-border)' }}>
-      <div className="text-[10px]" style={{ color: 'var(--c-text2)' }}>{label}</div>
+      <div className="text-[11px]" style={{ color: 'var(--c-text2)' }}>{label}</div>
       <div className="text-right">
-        <span className="text-[11px] font-mono font-medium" style={{ color: 'var(--c-white)' }}>
+        <span className="text-[12px] font-mono font-medium" style={{ color: 'var(--c-white)' }}>
           {typeof a === 'number' ? formatNumber(a) : a}
         </span>
         <div className="h-1 rounded-full mt-0.5 ml-auto" style={{ background: colorA, width: `${(numA / max * 100).toFixed(0)}%` }} />
       </div>
       <div className="text-right">
-        <span className="text-[11px] font-mono font-medium" style={{ color: 'var(--c-white)' }}>
+        <span className="text-[12px] font-mono font-medium" style={{ color: 'var(--c-white)' }}>
           {typeof b === 'number' ? formatNumber(b) : b}
         </span>
         <div className="h-1 rounded-full mt-0.5 ml-auto" style={{ background: colorB, width: `${(numB / max * 100).toFixed(0)}%` }} />
@@ -37,27 +37,27 @@ function ListCompare({ titleA, titleB, colorA, colorB, itemsA, itemsB, limit = 8
   return (
     <div className="grid grid-cols-2 gap-2">
       <div>
-        <h4 className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: colorA }}>{titleA}</h4>
+        <h4 className="text-[11px] font-medium uppercase tracking-wider mb-1" style={{ color: colorA }}>{titleA}</h4>
         <div className="space-y-0.5">
           {itemsA.slice(0, limit).map(t => (
-            <div key={t.name} className="flex justify-between text-[10px] py-0.5">
+            <div key={t.name} className="flex justify-between text-[11px] py-0.5">
               <span className="truncate" style={{ color: 'var(--c-text)' }}>{t.name}</span>
               <span className="font-mono ml-2" style={{ color: 'var(--c-text3)' }}>{t.count}</span>
             </div>
           ))}
-          {itemsA.length === 0 && <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>none</div>}
+          {itemsA.length === 0 && <div className="text-[11px]" style={{ color: 'var(--c-text3)' }}>none</div>}
         </div>
       </div>
       <div>
-        <h4 className="text-[10px] font-medium uppercase tracking-wider mb-1" style={{ color: colorB }}>{titleB}</h4>
+        <h4 className="text-[11px] font-medium uppercase tracking-wider mb-1" style={{ color: colorB }}>{titleB}</h4>
         <div className="space-y-0.5">
           {itemsB.slice(0, limit).map(t => (
-            <div key={t.name} className="flex justify-between text-[10px] py-0.5">
+            <div key={t.name} className="flex justify-between text-[11px] py-0.5">
               <span className="truncate" style={{ color: 'var(--c-text)' }}>{t.name}</span>
               <span className="font-mono ml-2" style={{ color: 'var(--c-text3)' }}>{t.count}</span>
             </div>
           ))}
-          {itemsB.length === 0 && <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>none</div>}
+          {itemsB.length === 0 && <div className="text-[11px]" style={{ color: 'var(--c-text3)' }}>none</div>}
         </div>
       </div>
     </div>
@@ -156,7 +156,7 @@ export default function Compare({ overview }) {
         <select
           value={editorA}
           onChange={e => setEditorA(e.target.value)}
-          className="px-2 py-1 text-[11px] outline-none"
+          className="px-2 py-1 text-[12px] outline-none"
           style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
         >
           {editors.map(e => <option key={e.id} value={e.id}>{editorLabel(e.id)}</option>)}
@@ -165,7 +165,7 @@ export default function Compare({ overview }) {
         <select
           value={editorB}
           onChange={e => setEditorB(e.target.value)}
-          className="px-2 py-1 text-[11px] outline-none"
+          className="px-2 py-1 text-[12px] outline-none"
           style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
         >
           {editors.map(e => <option key={e.id} value={e.id}>{editorLabel(e.id)}</option>)}
@@ -179,8 +179,8 @@ export default function Compare({ overview }) {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <div className="card p-3">
               <div className="flex items-center justify-between mb-1.5">
-                <h3 className="text-[10px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>totals</h3>
-                <div className="flex items-center gap-3 text-[9px]">
+                <h3 className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>totals</h3>
+                <div className="flex items-center gap-3 text-[10px]">
                   <span style={{ color: colorA }}>● {nameA}</span>
                   <span style={{ color: colorB }}>● {nameB}</span>
                 </div>
@@ -188,7 +188,7 @@ export default function Compare({ overview }) {
               {metrics.map(m => <MetricRow key={m.label} label={m.label} a={m.a} b={m.b} colorA={colorA} colorB={colorB} />)}
             </div>
             <div className="card p-3">
-              <h3 className="text-[10px] font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--c-text2)' }}>efficiency</h3>
+              <h3 className="text-[11px] font-medium uppercase tracking-wider mb-1.5" style={{ color: 'var(--c-text2)' }}>efficiency</h3>
               {ratios.map(m => <MetricRow key={m.label} label={m.label} a={m.a} b={m.b} colorA={colorA} colorB={colorB} />)}
             </div>
           </div>
@@ -196,14 +196,14 @@ export default function Compare({ overview }) {
           {/* Charts row */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <div className="card p-3">
-              <h3 className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>usage</h3>
+              <h3 className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>usage</h3>
               <div style={{ height: 160 }}>
                 <Bar data={barChart} options={barOpts} />
               </div>
             </div>
             {tokenChart && (
               <div className="card p-3">
-                <h3 className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>tokens</h3>
+                <h3 className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>tokens</h3>
                 <div style={{ height: 160 }}>
                   <Bar data={tokenChart} options={barOpts} />
                 </div>
@@ -214,12 +214,12 @@ export default function Compare({ overview }) {
           {/* Tools + Models side-by-side */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
             <div className="card p-3">
-              <h3 className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>top tools</h3>
+              <h3 className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>top tools</h3>
               <ListCompare titleA={nameA} titleB={nameB} colorA={colorA} colorB={colorB}
                 itemsA={result.deepA.topTools} itemsB={result.deepB.topTools} limit={10} />
             </div>
             <div className="card p-3">
-              <h3 className="text-[10px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>models</h3>
+              <h3 className="text-[11px] font-medium uppercase tracking-wider mb-2" style={{ color: 'var(--c-text2)' }}>models</h3>
               <ListCompare titleA={nameA} titleB={nameB} colorA={colorA} colorB={colorB}
                 itemsA={result.deepA.topModels} itemsB={result.deepB.topModels} limit={8} />
             </div>

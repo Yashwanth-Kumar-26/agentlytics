@@ -88,7 +88,7 @@ function TeamSidebar({ userList, userColorMap, onUserClick, selectedUser }) {
           {u.username.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-[10px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{u.username}</div>
+          <div className="text-[11px] font-medium truncate" style={{ color: 'var(--c-white)' }}>{u.username}</div>
           <div className="flex items-center gap-1 text-[8px]" style={{ color: 'var(--c-text3)' }}>
             <span>{u.sessions}s</span>
             <span>·</span>
@@ -110,8 +110,8 @@ function TeamSidebar({ userList, userColorMap, onUserClick, selectedUser }) {
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-3 py-2.5 shrink-0" style={{ borderBottom: '1px solid var(--c-border)' }}>
         <Users size={12} style={{ color: 'var(--c-accent)' }} />
-        <span className="text-[11px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Team</span>
-        <span className="text-[9px] ml-auto" style={{ color: 'var(--c-text3)' }}>{userList.length}</span>
+        <span className="text-[12px] font-medium uppercase tracking-wider" style={{ color: 'var(--c-text2)' }}>Team</span>
+        <span className="text-[10px] ml-auto" style={{ color: 'var(--c-text3)' }}>{userList.length}</span>
       </div>
 
       <div className="flex-1 overflow-y-auto scrollbar-thin py-1">
@@ -129,7 +129,7 @@ function TeamSidebar({ userList, userColorMap, onUserClick, selectedUser }) {
               >
                 {isCollapsed ? <ChevronRight size={10} style={{ color: 'var(--c-text3)' }} /> : <ChevronDown size={10} style={{ color: 'var(--c-text3)' }} />}
                 <FolderOpen size={10} style={{ color: '#818cf8' }} />
-                <span className="text-[10px] font-medium truncate flex-1" style={{ color: 'var(--c-text2)' }} title={proj}>{projName}</span>
+                <span className="text-[11px] font-medium truncate flex-1" style={{ color: 'var(--c-text2)' }} title={proj}>{projName}</span>
                 <span className="text-[8px]" style={{ color: 'var(--c-text3)' }}>{users.length}</span>
               </div>
               {!isCollapsed && (
@@ -145,7 +145,7 @@ function TeamSidebar({ userList, userColorMap, onUserClick, selectedUser }) {
         {ungrouped.length > 0 && (
           <div>
             {projectGroups.length > 0 && (
-              <div className="px-2 py-1.5 text-[9px] uppercase tracking-wider" style={{ color: 'var(--c-text3)' }}>
+              <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider" style={{ color: 'var(--c-text3)' }}>
                 unassigned
               </div>
             )}
@@ -156,7 +156,7 @@ function TeamSidebar({ userList, userColorMap, onUserClick, selectedUser }) {
         )}
 
         {userList.length === 0 && (
-          <div className="text-[10px] py-6 text-center" style={{ color: 'var(--c-text3)' }}>
+          <div className="text-[11px] py-6 text-center" style={{ color: 'var(--c-text3)' }}>
             No team members yet
           </div>
         )}
@@ -180,7 +180,7 @@ function MergeSection({ userList }) {
   return (
     <div className="shrink-0 px-2 py-2" style={{ borderTop: '1px solid var(--c-border)' }}>
       <div
-        className="flex items-center gap-1.5 cursor-pointer text-[9px] uppercase tracking-wider"
+        className="flex items-center gap-1.5 cursor-pointer text-[10px] uppercase tracking-wider"
         style={{ color: 'var(--c-text3)' }}
         onClick={() => setOpen(!open)}
       >
@@ -193,7 +193,7 @@ function MergeSection({ userList }) {
           <select
             value={mergeFrom}
             onChange={e => setMergeFrom(e.target.value)}
-            className="w-full text-[10px] px-1.5 py-1 outline-none rounded-sm"
+            className="w-full text-[11px] px-1.5 py-1 outline-none rounded-sm"
             style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
           >
             <option value="">from...</option>
@@ -204,7 +204,7 @@ function MergeSection({ userList }) {
           <select
             value={mergeTo}
             onChange={e => setMergeTo(e.target.value)}
-            className="w-full text-[10px] px-1.5 py-1 outline-none rounded-sm"
+            className="w-full text-[11px] px-1.5 py-1 outline-none rounded-sm"
             style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
           >
             <option value="">into...</option>
@@ -228,7 +228,7 @@ function MergeSection({ userList }) {
               }
               setMerging(false)
             }}
-            className="w-full text-[10px] px-2 py-1 font-medium transition rounded-sm"
+            className="w-full text-[11px] px-2 py-1 font-medium transition rounded-sm"
             style={{
               background: mergeFrom && mergeTo ? 'rgba(239,68,68,0.15)' : 'var(--c-bg3)',
               color: mergeFrom && mergeTo ? '#ef4444' : 'var(--c-text3)',
@@ -240,7 +240,7 @@ function MergeSection({ userList }) {
             {merging ? 'Merging...' : 'Merge'}
           </button>
           {mergeResult && (
-            <div className="text-[9px]" style={{ color: mergeResult.error ? '#ef4444' : '#22c55e' }}>
+            <div className="text-[10px]" style={{ color: mergeResult.error ? '#ef4444' : '#22c55e' }}>
               {mergeResult.error ? `Error: ${mergeResult.error}` : 'Merged!'}
             </div>
           )}
@@ -334,25 +334,25 @@ export default function RelayDashboard() {
           <div className="card p-3">
             <div className="flex items-center justify-between mb-2">
               <SectionTitle>team token usage</SectionTitle>
-              <span className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(totalTok)} total</span>
+              <span className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(totalTok)} total</span>
             </div>
             <ProportionBar height={10} segments={[
               { label: 'Input', value: stats.totalInputTokens, color: '#6366f1' },
               { label: 'Output', value: stats.totalOutputTokens, color: '#a78bfa' },
             ]} />
-            <div className="flex items-center gap-4 mt-1.5 text-[9px]">
+            <div className="flex items-center gap-4 mt-1.5 text-[10px]">
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#6366f1' }} /> input {formatNumber(stats.totalInputTokens)}</span>
               <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#a78bfa' }} /> output {formatNumber(stats.totalOutputTokens)}</span>
             </div>
             {userList.length > 1 && (
               <div className="mt-3 pt-2" style={{ borderTop: '1px solid var(--c-border)' }}>
-                <div className="text-[9px] mb-1.5" style={{ color: 'var(--c-text3)' }}>per-user contribution</div>
+                <div className="text-[10px] mb-1.5" style={{ color: 'var(--c-text3)' }}>per-user contribution</div>
                 <ProportionBar height={8} segments={userList.map(u => ({
                   label: u.username,
                   value: u.totalInputTokens + u.totalOutputTokens,
                   color: userColorMap[u.username],
                 }))} />
-                <div className="flex flex-wrap gap-3 mt-1 text-[9px]">
+                <div className="flex flex-wrap gap-3 mt-1 text-[10px]">
                   {userList.map(u => (
                     <span key={u.username} className="flex items-center gap-1" style={{ color: 'var(--c-text3)' }}>
                       <span className="w-2 h-2 rounded-sm" style={{ background: userColorMap[u.username] }} />
@@ -445,14 +445,14 @@ export default function RelayDashboard() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search messages, files, topics across all users..."
-                className="w-full pl-7 pr-3 py-1.5 text-[11px] outline-none rounded-sm"
+                className="w-full pl-7 pr-3 py-1.5 text-[12px] outline-none rounded-sm"
                 style={{ background: 'var(--c-bg3)', color: 'var(--c-white)', border: '1px solid var(--c-border)' }}
               />
             </div>
             <button
               type="submit"
               disabled={searching}
-              className="px-3 py-1.5 text-[10px] font-medium transition rounded-sm"
+              className="px-3 py-1.5 text-[11px] font-medium transition rounded-sm"
               style={{ background: 'var(--c-card)', border: '1px solid var(--c-border)', color: 'var(--c-white)' }}
             >
               {searching ? 'Searching...' : 'Search'}
@@ -461,9 +461,9 @@ export default function RelayDashboard() {
           {searchResults && (
             <div className="mt-3 max-h-[300px] overflow-y-auto scrollbar-thin">
               {searchResults.length === 0 ? (
-                <div className="text-[11px] py-2" style={{ color: 'var(--c-text3)' }}>No results found</div>
+                <div className="text-[12px] py-2" style={{ color: 'var(--c-text3)' }}>No results found</div>
               ) : (
-                <table className="w-full text-[11px]">
+                <table className="w-full text-[12px]">
                   <tbody>
                     {searchResults.map((r, i) => (
                       <tr
@@ -475,14 +475,14 @@ export default function RelayDashboard() {
                         onClick={() => { setSelectedChat(r.chatId); setSelectedUsername(r.username) }}
                       >
                         <td className="py-2 px-2 w-[80px]">
-                          <span className="text-[9px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>{r.username}</span>
+                          <span className="text-[10px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>{r.username}</span>
                         </td>
                         <td className="py-2 px-2 w-[24px]"><EditorIcon source={r.source} size={11} /></td>
                         <td className="py-2 px-2">
-                          <div className="text-[10px] truncate" style={{ color: 'var(--c-text3)' }}>{r.chatName}</div>
-                          <div className="text-[10px] line-clamp-1 mt-0.5" style={{ color: 'var(--c-text)' }}>{r.content}</div>
+                          <div className="text-[11px] truncate" style={{ color: 'var(--c-text3)' }}>{r.chatName}</div>
+                          <div className="text-[11px] line-clamp-1 mt-0.5" style={{ color: 'var(--c-text)' }}>{r.content}</div>
                         </td>
-                        <td className="py-2 px-2 text-[9px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>{r.role}</td>
+                        <td className="py-2 px-2 text-[10px] whitespace-nowrap" style={{ color: 'var(--c-text3)' }}>{r.role}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -506,12 +506,12 @@ export default function RelayDashboard() {
                 onClick={() => navigate(`/relay/user/${u.username}`)}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 flex items-center justify-center text-[11px] font-bold rounded-sm flex-shrink-0" style={{ background: `${color}20`, color }}>
+                  <div className="w-7 h-7 flex items-center justify-center text-[12px] font-bold rounded-sm flex-shrink-0" style={{ background: `${color}20`, color }}>
                     {u.username.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] font-bold truncate" style={{ color: 'var(--c-white)' }}>{u.username}</div>
-                    <div className="text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                    <div className="text-[12px] font-bold truncate" style={{ color: 'var(--c-white)' }}>{u.username}</div>
+                    <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>
                       {u.lastActive ? formatDate(u.lastActive) : 'No activity'}
                     </div>
                   </div>
@@ -529,7 +529,7 @@ export default function RelayDashboard() {
                     [formatNumber(uTok), 'tokens'],
                   ].map(([v, l]) => (
                     <div key={l} className="p-1 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                      <div className="text-[10px] font-bold" style={{ color: 'var(--c-white)' }}>{v}</div>
+                      <div className="text-[11px] font-bold" style={{ color: 'var(--c-white)' }}>{v}</div>
                       <div className="text-[7px]" style={{ color: 'var(--c-text3)' }}>{l}</div>
                     </div>
                   ))}
@@ -554,7 +554,7 @@ export default function RelayDashboard() {
           <div className="card p-8 text-center">
             <Users size={32} className="mx-auto mb-3" style={{ color: 'var(--c-text3)' }} />
             <div className="text-[12px] font-medium mb-1" style={{ color: 'var(--c-white)' }}>No team members yet</div>
-            <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>Share the join command with your team to start collecting data</div>
+            <div className="text-[11px]" style={{ color: 'var(--c-text3)' }}>Share the join command with your team to start collecting data</div>
           </div>
         )}
       </div>
@@ -575,7 +575,7 @@ export default function RelayDashboard() {
         username={selectedUsername}
         extraHeader={
           selectedUsername ? (
-            <span className="text-[10px] font-medium px-1.5 py-0.5 shrink-0" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+            <span className="text-[11px] font-medium px-1.5 py-0.5 shrink-0" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
               {selectedUsername}
             </span>
           ) : null

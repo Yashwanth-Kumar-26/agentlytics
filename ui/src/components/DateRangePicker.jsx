@@ -46,7 +46,7 @@ export default function DateRangePicker({ value, onChange }) {
           <button
             key={p.label}
             onClick={() => applyPreset(p.days)}
-            className="px-2 py-0.5 text-[10px] transition"
+            className="px-2 py-0.5 text-[11px] transition"
             style={{
               border: isActive ? '1px solid var(--c-accent)' : '1px solid var(--c-border)',
               color: isActive ? 'var(--c-accent)' : 'var(--c-text2)',
@@ -64,7 +64,7 @@ export default function DateRangePicker({ value, onChange }) {
         value={value?.from || ''}
         max={value?.to || today}
         onChange={e => setFrom(e.target.value)}
-        className="px-1.5 py-0.5 text-[10px] outline-none cursor-pointer"
+        className="px-1.5 py-0.5 text-[11px] outline-none cursor-pointer"
         style={{
           background: 'var(--c-bg3)',
           color: 'var(--c-text)',
@@ -72,14 +72,14 @@ export default function DateRangePicker({ value, onChange }) {
           colorScheme: dark ? 'dark' : 'light',
         }}
       />
-      <span className="text-[10px]" style={{ color: 'var(--c-text3)' }}>—</span>
+      <span className="text-[11px]" style={{ color: 'var(--c-text3)' }}>—</span>
       <input
         type="date"
         value={value?.to || ''}
         min={value?.from || ''}
         max={today}
         onChange={e => setTo(e.target.value)}
-        className="px-1.5 py-0.5 text-[10px] outline-none cursor-pointer"
+        className="px-1.5 py-0.5 text-[11px] outline-none cursor-pointer"
         style={{
           background: 'var(--c-bg3)',
           color: 'var(--c-text)',
@@ -92,7 +92,7 @@ export default function DateRangePicker({ value, onChange }) {
       {active && (
         <button
           onClick={() => onChange(null)}
-          className="flex items-center gap-0.5 px-2 py-0.5 text-[10px] transition"
+          className="flex items-center gap-0.5 px-2 py-0.5 text-[11px] transition"
           style={{ border: '1px solid var(--c-accent)', color: 'var(--c-accent)' }}
         >
           <X size={9} /> clear

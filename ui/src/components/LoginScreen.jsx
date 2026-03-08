@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Lock } from 'lucide-react'
 import { login } from '../lib/api'
+import AnimatedLogo from './AnimatedLogo'
 
 export default function LoginScreen({ onSuccess }) {
   const [password, setPassword] = useState('')
@@ -31,13 +32,14 @@ export default function LoginScreen({ onSuccess }) {
             >
               <Lock size={18} style={{ color: '#818cf8' }} />
             </div>
-            <div className="text-sm font-bold" style={{ color: 'var(--c-white)' }}>
-              npx agentlytics
-              <span className="ml-1.5 text-[9px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
+            <div className="flex items-center gap-1.5 text-sm font-bold" style={{ color: 'var(--c-white)' }}>
+              <AnimatedLogo size={16} />
+              Agentlytics
+              <span className="text-[10px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>
                 relay
               </span>
             </div>
-            <div className="text-[10px] mt-1" style={{ color: 'var(--c-text3)' }}>
+            <div className="text-[11px] mt-1" style={{ color: 'var(--c-text3)' }}>
               This relay is password-protected
             </div>
           </div>
@@ -57,12 +59,12 @@ export default function LoginScreen({ onSuccess }) {
               }}
             />
             {error && (
-              <div className="text-[10px]" style={{ color: '#f87171' }}>{error}</div>
+              <div className="text-[11px]" style={{ color: '#f87171' }}>{error}</div>
             )}
             <button
               type="submit"
               disabled={loading || !password}
-              className="w-full py-2 text-[11px] font-medium rounded transition"
+              className="w-full py-2 text-[12px] font-medium rounded transition"
               style={{
                 background: '#6366f1',
                 color: '#fff',

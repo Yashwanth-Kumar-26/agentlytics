@@ -75,7 +75,7 @@ function DiffBlock({ diff }) {
   const oldLines = (diff.old || '').split('\n').slice(0, maxLines)
   const newLines = (diff.new || '').split('\n').slice(0, maxLines)
   return (
-    <div className="mt-1 text-[9px] font-mono overflow-x-auto" style={{ border: '1px solid var(--c-border)' }}>
+    <div className="mt-1 text-[10px] font-mono overflow-x-auto" style={{ border: '1px solid var(--c-border)' }}>
       {diff.file && (
         <div className="px-2 py-0.5" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text2)' }}>{diff.file}</div>
       )}
@@ -107,7 +107,7 @@ function ToolCallRow({ call, toolName, index }) {
   const hasDetail = diff || (call.args && Object.keys(call.args).length > 0)
 
   return (
-    <div className="px-2 py-1 text-[10px]" style={{ background: index % 2 === 0 ? 'var(--c-code-bg)' : 'transparent' }}>
+    <div className="px-2 py-1 text-[11px]" style={{ background: index % 2 === 0 ? 'var(--c-code-bg)' : 'transparent' }}>
       <div className="flex items-start gap-2 cursor-pointer" onClick={() => hasDetail && setExpanded(!expanded)}>
         <EditorIcon source={call.source} size={10} />
         <div className="flex-1 min-w-0">
@@ -124,7 +124,7 @@ function ToolCallRow({ call, toolName, index }) {
       </div>
       {expanded && diff && <DiffBlock diff={diff} />}
       {expanded && !diff && call.args && Object.keys(call.args).length > 0 && (
-        <pre className="mt-1 px-2 py-1 text-[9px] overflow-x-auto whitespace-pre-wrap break-all" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text2)' }}>
+        <pre className="mt-1 px-2 py-1 text-[10px] overflow-x-auto whitespace-pre-wrap break-all" style={{ background: 'var(--c-code-bg)', color: 'var(--c-text2)' }}>
           {JSON.stringify(call.args, null, 2)}
         </pre>
       )}
@@ -148,7 +148,7 @@ function ToolDrillDown({ toolName, folder, onClose }) {
         <div className="flex items-center gap-2">
           <Wrench size={12} style={{ color: 'var(--c-accent)' }} />
           <span className="text-xs font-bold" style={{ color: 'var(--c-white)' }}>{toolName}</span>
-          <span className="text-[10px]" style={{ color: 'var(--c-text2)' }}>
+          <span className="text-[11px]" style={{ color: 'var(--c-text2)' }}>
             {calls ? `${calls.length} calls` : '...'}
             {calls && projectName ? ` in ${projectName}` : ''}
           </span>
@@ -156,7 +156,7 @@ function ToolDrillDown({ toolName, folder, onClose }) {
         <button onClick={onClose} className="p-0.5" style={{ color: 'var(--c-text2)' }}><X size={12} /></button>
       </div>
       {loading ? (
-        <div className="text-[10px] py-4 text-center" style={{ color: 'var(--c-text3)' }}>loading...</div>
+        <div className="text-[11px] py-4 text-center" style={{ color: 'var(--c-text3)' }}>loading...</div>
       ) : calls && calls.length > 0 ? (
         <div className="max-h-[500px] overflow-y-auto scrollbar-thin space-y-0.5">
           {calls.map((c, i) => (
@@ -164,7 +164,7 @@ function ToolDrillDown({ toolName, folder, onClose }) {
           ))}
         </div>
       ) : (
-        <div className="text-[10px] py-4 text-center" style={{ color: 'var(--c-text3)' }}>no calls found</div>
+        <div className="text-[11px] py-4 text-center" style={{ color: 'var(--c-text3)' }}>no calls found</div>
       )}
     </div>
   )
@@ -247,7 +247,7 @@ export default function DeepAnalysis({ overview }) {
         <select
           value={editor}
           onChange={e => setEditor(e.target.value)}
-          className="px-2 py-1.5 text-[11px] outline-none rounded-sm"
+          className="px-2 py-1.5 text-[12px] outline-none rounded-sm"
           style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
         >
           <option value="">All Editors</option>
@@ -258,7 +258,7 @@ export default function DeepAnalysis({ overview }) {
         <select
           value={folder}
           onChange={e => setFolder(e.target.value)}
-          className="px-2 py-1.5 text-[11px] outline-none max-w-[200px] truncate rounded-sm"
+          className="px-2 py-1.5 text-[12px] outline-none max-w-[200px] truncate rounded-sm"
           style={{ background: 'var(--c-bg3)', color: 'var(--c-text)', border: '1px solid var(--c-border)' }}
         >
           <option value="">All Projects</option>
@@ -267,7 +267,7 @@ export default function DeepAnalysis({ overview }) {
           ))}
         </select>
         {loading && <Loader2 size={11} className="animate-spin" style={{ color: 'var(--c-text3)' }} />}
-        {data && <span className="text-[10px]" style={{ color: 'var(--c-text2)' }}>{data.analyzedChats} sessions analyzed</span>}
+        {data && <span className="text-[11px]" style={{ color: 'var(--c-text2)' }}>{data.analyzedChats} sessions analyzed</span>}
         <div className="ml-auto"><DateRangePicker value={dateRange} onChange={setDateRange} /></div>
       </div>
 
@@ -290,7 +290,7 @@ export default function DeepAnalysis({ overview }) {
               <div className="space-y-3 mt-2">
                 {/* Input tokens breakdown */}
                 <div>
-                  <div className="flex items-center justify-between text-[10px] mb-1">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
                     <span style={{ color: 'var(--c-text2)' }}>input tokens</span>
                     <span className="font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(data.totalInputTokens)}</span>
                   </div>
@@ -298,14 +298,14 @@ export default function DeepAnalysis({ overview }) {
                     { label: 'Fresh input', value: data.totalInputTokens - data.totalCacheRead, color: '#6366f1' },
                     { label: 'Cache read', value: data.totalCacheRead, color: '#34d399' },
                   ]} />
-                  <div className="flex items-center gap-3 mt-1 text-[9px]">
+                  <div className="flex items-center gap-3 mt-1 text-[10px]">
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#6366f1' }} /> fresh {formatNumber(data.totalInputTokens - data.totalCacheRead)}</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#34d399' }} /> cached {formatNumber(data.totalCacheRead)}</span>
                   </div>
                 </div>
                 {/* Output tokens */}
                 <div>
-                  <div className="flex items-center justify-between text-[10px] mb-1">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
                     <span style={{ color: 'var(--c-text2)' }}>output tokens</span>
                     <span className="font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(data.totalOutputTokens)}</span>
                   </div>
@@ -316,7 +316,7 @@ export default function DeepAnalysis({ overview }) {
                 {/* Cache write */}
                 {data.totalCacheWrite > 0 && (
                   <div>
-                    <div className="flex items-center justify-between text-[10px] mb-1">
+                    <div className="flex items-center justify-between text-[11px] mb-1">
                       <span style={{ color: 'var(--c-text2)' }}>cache write</span>
                       <span className="font-bold" style={{ color: 'var(--c-white)' }}>{formatNumber(data.totalCacheWrite)}</span>
                     </div>
@@ -327,14 +327,14 @@ export default function DeepAnalysis({ overview }) {
                 )}
                 {/* Overall ratio bar */}
                 <div className="pt-2" style={{ borderTop: '1px solid var(--c-border)' }}>
-                  <div className="text-[9px] mb-1" style={{ color: 'var(--c-text3)' }}>overall token distribution</div>
+                  <div className="text-[10px] mb-1" style={{ color: 'var(--c-text3)' }}>overall token distribution</div>
                   <ProportionBar height={10} segments={[
                     { label: 'Input', value: data.totalInputTokens, color: '#6366f1' },
                     { label: 'Output', value: data.totalOutputTokens, color: '#a78bfa' },
                     { label: 'Cache Read', value: data.totalCacheRead, color: '#34d399' },
                     { label: 'Cache Write', value: data.totalCacheWrite, color: '#fbbf24' },
                   ]} />
-                  <div className="flex items-center gap-3 mt-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                  <div className="flex items-center gap-3 mt-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#6366f1' }} /> in</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#a78bfa' }} /> out</span>
                     <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#34d399' }} /> cache read</span>
@@ -350,12 +350,12 @@ export default function DeepAnalysis({ overview }) {
               <div className="space-y-3 mt-2">
                 {/* Human vs AI chars */}
                 <div>
-                  <div className="text-[10px] mb-1" style={{ color: 'var(--c-text2)' }}>you vs AI (characters)</div>
+                  <div className="text-[11px] mb-1" style={{ color: 'var(--c-text2)' }}>you vs AI (characters)</div>
                   <ProportionBar height={8} segments={[
                     { label: 'You', value: data.totalUserChars, color: '#6366f1' },
                     { label: 'AI', value: data.totalAssistantChars, color: '#34d399' },
                   ]} />
-                  <div className="flex items-center justify-between mt-1 text-[9px]">
+                  <div className="flex items-center justify-between mt-1 text-[10px]">
                     <span style={{ color: '#6366f1' }}>You: {formatNumber(data.totalUserChars)}</span>
                     <span style={{ color: '#34d399' }}>AI: {formatNumber(data.totalAssistantChars)}</span>
                   </div>
@@ -364,25 +364,25 @@ export default function DeepAnalysis({ overview }) {
                 {/* Metric cards */}
                 <div className="grid grid-cols-2 gap-2">
                   <div className="p-2 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                    <div className="flex items-center gap-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                    <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                       <TrendingUp size={9} /> output/input ratio
                     </div>
                     <div className="text-sm font-bold mt-0.5" style={{ color: 'var(--c-white)' }}>{insights.outputRatio}×</div>
                   </div>
                   <div className="p-2 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                    <div className="flex items-center gap-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                    <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                       <Zap size={9} /> cache hit rate
                     </div>
                     <div className="text-sm font-bold mt-0.5" style={{ color: parseFloat(insights.cacheHitRate) > 50 ? '#34d399' : parseFloat(insights.cacheHitRate) > 20 ? '#fbbf24' : 'var(--c-white)' }}>{insights.cacheHitRate}%</div>
                   </div>
                   <div className="p-2 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                    <div className="flex items-center gap-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                    <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                       <MessageSquare size={9} /> tokens per message
                     </div>
                     <div className="text-sm font-bold mt-0.5" style={{ color: 'var(--c-white)' }}>{formatNumber(insights.tokPerMsg)}</div>
                   </div>
                   <div className="p-2 rounded-sm" style={{ background: 'var(--c-code-bg)' }}>
-                    <div className="flex items-center gap-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+                    <div className="flex items-center gap-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
                       <Wrench size={9} /> tools per session
                     </div>
                     <div className="text-sm font-bold mt-0.5" style={{ color: 'var(--c-white)' }}>{insights.toolsPerSession}</div>
@@ -391,9 +391,9 @@ export default function DeepAnalysis({ overview }) {
 
                 {/* AI amplification */}
                 <div className="p-2 rounded-sm text-center" style={{ background: 'var(--c-code-bg)' }}>
-                  <div className="text-[9px]" style={{ color: 'var(--c-text3)' }}>AI amplification factor</div>
+                  <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>AI amplification factor</div>
                   <div className="text-lg font-bold" style={{ color: 'var(--c-accent)' }}>{insights.aiVsHuman}×</div>
-                  <div className="text-[9px]" style={{ color: 'var(--c-text3)' }}>AI writes {insights.aiVsHuman}× more than you type</div>
+                  <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>AI writes {insights.aiVsHuman}× more than you type</div>
                 </div>
               </div>
             </div>
@@ -424,7 +424,7 @@ export default function DeepAnalysis({ overview }) {
                       plugins: { legend: { display: false }, tooltip: { bodyFont: { family: MONO, size: 10 }, titleFont: { family: MONO, size: 10 } } },
                     }}
                   />
-                ) : <div className="text-[10px] text-center py-8" style={{ color: 'var(--c-text3)' }}>no tool calls found</div>}
+                ) : <div className="text-[11px] text-center py-8" style={{ color: 'var(--c-text3)' }}>no tool calls found</div>}
               </div>
             </div>
 
@@ -446,16 +446,16 @@ export default function DeepAnalysis({ overview }) {
                       },
                     }}
                   />
-                ) : <div className="text-[10px] text-center py-8" style={{ color: 'var(--c-text3)' }}>no model data</div>}
+                ) : <div className="text-[11px] text-center py-8" style={{ color: 'var(--c-text3)' }}>no model data</div>}
               </div>
 
               {/* Tool categories below models */}
               {toolCategories.length > 0 && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--c-border)' }}>
-                  <div className="text-[9px] uppercase tracking-wider mb-2" style={{ color: 'var(--c-text3)' }}>tool categories</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-2" style={{ color: 'var(--c-text3)' }}>tool categories</div>
                   <div className="space-y-1.5">
                     {toolCategories.map(([cat, { tools: catTools, total }]) => (
-                      <div key={cat} className="flex items-center gap-2 text-[10px]">
+                      <div key={cat} className="flex items-center gap-2 text-[11px]">
                         <span className="truncate flex-1" style={{ color: 'var(--c-text2)' }}>{cat}</span>
                         <span className="font-bold" style={{ color: 'var(--c-white)' }}>{total}</span>
                         <span style={{ color: 'var(--c-text3)' }}>({catTools.length})</span>

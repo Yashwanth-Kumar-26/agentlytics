@@ -3,6 +3,7 @@ import { Routes, Route, NavLink } from 'react-router-dom'
 import { Activity, BarChart3, GitCompare, MessageSquare, FolderOpen, Sun, Moon, RefreshCw, AlertTriangle, Github, Terminal, Database, Users, Radio, Plug, Copy, Check } from 'lucide-react'
 import { fetchOverview, refetchAgents, fetchMode, fetchRelayConfig, getAuthToken, setOnAuthFailure } from './lib/api'
 import { useTheme } from './lib/theme'
+import AnimatedLogo from './components/AnimatedLogo'
 import LoginScreen from './components/LoginScreen'
 import Dashboard from './pages/Dashboard'
 import Sessions from './pages/Sessions'
@@ -97,8 +98,9 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="border-b px-4 py-1.5 flex items-center gap-3 sticky top-0 z-50 backdrop-blur-xl" style={{ borderColor: 'var(--c-border)', background: 'var(--c-header)' }}>
-        <span className="text-xs font-bold tracking-tight" style={{ color: 'var(--c-white)' }}>
-          npx agentlytics{isRelay && <span className="ml-1.5 text-[9px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>relay</span>}
+        <span className="flex items-center gap-1.5 text-xs font-bold tracking-tight" style={{ color: 'var(--c-white)' }}>
+          <AnimatedLogo size={18} />
+          Agentlytics{isRelay && <span className="ml-1.5 text-[10px] font-medium px-1.5 py-0.5" style={{ background: 'rgba(99,102,241,0.15)', color: '#818cf8' }}>relay</span>}
         </span>
         <nav className="flex gap-0.5 ml-2">
           {nav.map(({ to, icon: Icon, label }) => (
@@ -107,7 +109,7 @@ export default function App() {
               to={to}
               end={to === '/'}
               className={({ isActive }) =>
-                `flex items-center gap-1.5 px-2.5 py-1 text-[11px] rounded transition ${
+                `flex items-center gap-1.5 px-2.5 py-1 text-[12px] rounded transition ${
                   isActive ? 'bg-[var(--c-card)] text-[var(--c-white)]' : 'text-[var(--c-text2)] hover:text-[var(--c-white)]'
                 }`
               }
@@ -122,7 +124,7 @@ export default function App() {
             <>
               <button
                 onClick={() => setLive(!live)}
-                className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] transition"
+                className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] transition"
                 style={{
                   color: live ? '#22c55e' : 'var(--c-text3)',
                   border: live ? '1px solid rgba(34,197,94,0.3)' : '1px solid var(--c-border)',
@@ -139,7 +141,7 @@ export default function App() {
               <button
                 onClick={handleRefetch}
                 disabled={!!refetchState}
-                className="flex items-center gap-1 px-2 py-0.5 text-[10px] rounded transition hover:bg-[var(--c-card)]"
+                className="flex items-center gap-1 px-2 py-0.5 text-[11px] rounded transition hover:bg-[var(--c-card)]"
                 style={{ color: 'var(--c-text2)', border: '1px solid var(--c-border)' }}
                 title="Clear cache and rescan all editors"
               >
@@ -148,7 +150,7 @@ export default function App() {
                   ? `Refetching (${refetchState.scanned}/${refetchState.total})...`
                   : 'Refetch'}
               </button>
-              <span className="text-[10px]" style={{ color: 'var(--c-text2)' }}>
+              <span className="text-[11px]" style={{ color: 'var(--c-text2)' }}>
                 {overview ? `${overview.totalChats} sessions` : '...'}
               </span>
             </>
@@ -156,7 +158,7 @@ export default function App() {
           {isRelay && (
             <button
               onClick={() => { setMcpOpen(true); setMcpCopied(false) }}
-              className="flex items-center gap-1.5 px-2 py-0.5 text-[10px] transition hover:bg-[var(--c-card)]"
+              className="flex items-center gap-1.5 px-2 py-0.5 text-[11px] transition hover:bg-[var(--c-card)]"
               style={{ color: '#818cf8', border: '1px solid var(--c-border)' }}
               title="MCP Connection"
             >
@@ -176,7 +178,7 @@ export default function App() {
       </header>
 
       {refetchState && (
-        <div className="flex items-center gap-2 px-4 py-1.5 text-[11px]" style={{ background: 'rgba(234,179,8,0.08)', borderBottom: '1px solid rgba(234,179,8,0.15)', color: '#ca8a04' }}>
+        <div className="flex items-center gap-2 px-4 py-1.5 text-[12px]" style={{ background: 'rgba(234,179,8,0.08)', borderBottom: '1px solid rgba(234,179,8,0.15)', color: '#ca8a04' }}>
           <AlertTriangle size={12} />
           <span>Windsurf, Windsurf Next, and Antigravity require their app to be running during refetch — otherwise their sessions won't be detected.</span>
         </div>
@@ -205,7 +207,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t mt-8 px-4 py-3 flex items-center justify-between text-[10px]" style={{ borderColor: 'var(--c-border)', color: 'var(--c-text3)' }}>
+      <footer className="border-t mt-8 px-4 py-3 flex items-center justify-between text-[11px]" style={{ borderColor: 'var(--c-border)', color: 'var(--c-text3)' }}>
         <div className="flex items-center gap-3">
           <a href="https://github.com/f/agentlytics" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 hover:text-[var(--c-text)] transition">
             <Github size={11} />
@@ -237,9 +239,9 @@ export default function App() {
               <button onClick={() => setMcpOpen(false)} className="text-[18px] leading-none px-1 hover:opacity-70 transition" style={{ color: 'var(--c-text3)' }}>&times;</button>
             </div>
 
-            <div className="text-[11px] font-medium mb-1.5" style={{ color: 'var(--c-white)' }}>MCP Config</div>
+            <div className="text-[12px] font-medium mb-1.5" style={{ color: 'var(--c-white)' }}>MCP Config</div>
             <div className="flex items-center justify-between mb-1">
-              <div className="text-[9px]" style={{ color: 'var(--c-text3)' }}>Add to your AI client's MCP settings</div>
+              <div className="text-[10px]" style={{ color: 'var(--c-text3)' }}>Add to your AI client's MCP settings</div>
               <button
                 onClick={() => {
                   const json = JSON.stringify({ "mcpServers": { "agentlytics": { "url": `${window.location.origin}/mcp` } } }, null, 2)
@@ -247,21 +249,21 @@ export default function App() {
                   setMcpCopied(true)
                   setTimeout(() => setMcpCopied(false), 2000)
                 }}
-                className="flex items-center gap-1 px-1.5 py-0.5 text-[9px] transition hover:bg-[var(--c-bg3)]"
+                className="flex items-center gap-1 px-1.5 py-0.5 text-[10px] transition hover:bg-[var(--c-bg3)]"
                 style={{ border: '1px solid var(--c-border)', color: mcpCopied ? '#22c55e' : 'var(--c-text2)' }}
               >
                 {mcpCopied ? <><Check size={9} /> Copied</> : <><Copy size={9} /> Copy</>}
               </button>
             </div>
             <pre
-              className="text-[10px] px-3 py-2 overflow-x-auto mb-4"
+              className="text-[11px] px-3 py-2 overflow-x-auto mb-4"
               style={{ background: 'var(--c-bg3)', border: '1px solid var(--c-border)', color: 'var(--c-text)', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.6 }}
             >{`{\n  "mcpServers": {\n    "agentlytics": {\n      "url": "${window.location.origin}/mcp"\n    }\n  }\n}`}</pre>
 
-            <div className="text-[11px] font-medium mb-1.5" style={{ color: 'var(--c-white)' }}>Join Command</div>
-            <div className="text-[9px] mb-1" style={{ color: 'var(--c-text3)' }}>Share with your team to start syncing sessions</div>
+            <div className="text-[12px] font-medium mb-1.5" style={{ color: 'var(--c-white)' }}>Join Command</div>
+            <div className="text-[10px] mb-1" style={{ color: 'var(--c-text3)' }}>Share with your team to start syncing sessions</div>
             <pre
-              className="text-[10px] px-3 py-2 overflow-x-auto"
+              className="text-[11px] px-3 py-2 overflow-x-auto"
               style={{ background: 'var(--c-bg3)', border: '1px solid var(--c-border)', color: 'var(--c-text)', fontFamily: 'JetBrains Mono, monospace', lineHeight: 1.6 }}
             >{`cd /path/to/your-project\nRELAY_PASSWORD=${relayPassword || '<pass>'} npx agentlytics --join ${window.location.host}`}</pre>
           </div>

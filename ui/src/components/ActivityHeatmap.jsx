@@ -144,7 +144,7 @@ export default function ActivityHeatmap({ dailyData }) {
         </svg>
       </div>
 
-      <div className="flex items-center gap-1.5 mt-1 text-[9px]" style={{ color: 'var(--c-text3)' }}>
+      <div className="flex items-center gap-1.5 mt-1 text-[10px]" style={{ color: 'var(--c-text3)' }}>
         <span>less</span>
         {COLORS.map((color, i) => (
           <span key={i} className="inline-block w-[9px] h-[9px] rounded-sm" style={{ background: color }} />
@@ -158,13 +158,13 @@ export default function ActivityHeatmap({ dailyData }) {
           <div className="flex items-center justify-between mb-2">
             <div>
               <span className="text-xs font-medium" style={{ color: 'var(--c-white)' }}>{selectedDay.key}</span>
-              <span className="text-[10px] ml-2" style={{ color: 'var(--c-text2)' }}>
+              <span className="text-[11px] ml-2" style={{ color: 'var(--c-text2)' }}>
                 {selectedDay.count} session{selectedDay.count !== 1 ? 's' : ''}
                 {' · '}
                 {Object.entries(selectedDay.data.editors || {}).map(([e, c]) => `${editorLabel(e)}: ${c}`).join(', ')}
               </span>
             </div>
-            <button onClick={() => setSelectedDay(null)} className="text-[10px] transition" style={{ color: 'var(--c-text2)' }}>close</button>
+            <button onClick={() => setSelectedDay(null)} className="text-[11px] transition" style={{ color: 'var(--c-text2)' }}>close</button>
           </div>
           {hourlyChart && (
             <div style={{ height: 140 }}>
