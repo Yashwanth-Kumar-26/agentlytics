@@ -13,6 +13,7 @@ export const EDITOR_COLORS = {
   'gemini-cli': '#4285f4',
   'copilot-cli': '#8957e5',
   'cursor-agent': '#f59e0b',
+  'commandcode': '#e11d48',
 };
 
 export const EDITOR_LABELS = {
@@ -30,6 +31,7 @@ export const EDITOR_LABELS = {
   'gemini-cli': 'Gemini CLI',
   'copilot-cli': 'Copilot CLI',
   'cursor-agent': 'Cursor Agent',
+  'commandcode': 'Command Code',
 };
 
 export function editorColor(src) {

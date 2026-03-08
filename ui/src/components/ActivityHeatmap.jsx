@@ -2,6 +2,7 @@ import { useState, useMemo, useRef } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { editorColor, editorLabel } from '../lib/constants'
+import { useTheme } from '../lib/theme'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend)
 
@@ -24,6 +25,7 @@ const INTENSITY_COLORS_DARK = ['rgba(255,255,255,0.03)', '#0e4429', '#006d32', '
 const INTENSITY_COLORS_LIGHT = ['rgba(0,0,0,0.04)', '#9be9a8', '#40c463', '#30a14e', '#216e39']
 
 export default function ActivityHeatmap({ dailyData }) {
+  const { dark } = useTheme()
   const [selectedDay, setSelectedDay] = useState(null)
   const containerRef = useRef(null)
 
@@ -96,8 +98,10 @@ export default function ActivityHeatmap({ dailyData }) {
 
   if (!grid.weeks.length) return null
 
-  const isDark = !document.documentElement.classList.contains('light')
-  const COLORS = isDark ? INTENSITY_COLORS_DARK : INTENSITY_COLORS_LIGHT
+  const COLORS = dark ? INTENSITY_COLORS_DARK : INTENSITY_COLORS_LIGHT
+  const txtDim = dark ? '#555' : '#999'
+  const gridColor = dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.06)'
+  const legendColor = dark ? '#888' : '#555'
   const svgWidth = WEEK_COLS * (CELL_SIZE + CELL_GAP) + 28
   const svgHeight = 7 * (CELL_SIZE + CELL_GAP) + 20
 
@@ -172,19 +176,19 @@ export default function ActivityHeatmap({ dailyData }) {
                   interaction: { mode: 'index', intersect: false },
                   scales: {
                     x: {
-                      grid: { color: 'rgba(255,255,255,0.03)' },
-                      ticks: { color: '#555', font: { size: 9, family: 'JetBrains Mono, monospace' }, maxRotation: 0 },
+                      grid: { color: gridColor },
+                      ticks: { color: txtDim, font: { size: 9, family: 'JetBrains Mono, monospace' }, maxRotation: 0 },
                     },
                     y: {
                       beginAtZero: true,
-                      grid: { color: 'rgba(255,255,255,0.03)' },
-                      ticks: { color: '#555', stepSize: 1, font: { size: 9, family: 'JetBrains Mono, monospace' } },
+                      grid: { color: gridColor },
+                      ticks: { color: txtDim, stepSize: 1, font: { size: 9, family: 'JetBrains Mono, monospace' } },
                     },
                   },
                   plugins: {
                     legend: {
                       position: 'top',
-                      labels: { color: '#888', font: { size: 9, family: 'JetBrains Mono, monospace' }, usePointStyle: true, pointStyle: 'circle', padding: 8 },
+                      labels: { color: legendColor, font: { size: 9, family: 'JetBrains Mono, monospace' }, usePointStyle: true, pointStyle: 'circle', padding: 8 },
                     },
                     tooltip: {
                       bodyFont: { family: 'JetBrains Mono, monospace', size: 10 },

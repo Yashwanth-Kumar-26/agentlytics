@@ -19,6 +19,10 @@ function parseDateOpts(query) {
   return opts;
 }
 
+app.get('/api/mode', (req, res) => {
+  res.json({ mode: 'local' });
+});
+
 app.get('/api/overview', (req, res) => {
   try {
     const opts = { editor: req.query.editor || null, ...parseDateOpts(req.query) };
@@ -61,6 +65,7 @@ app.get('/api/chats', (req, res) => {
         lastUpdatedAt: c.last_updated_at,
         encrypted: !!c.encrypted,
         bubbleCount: c.bubble_count,
+        topModel: c.top_model || null,
       })),
     });
   } catch (err) {

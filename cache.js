@@ -2,7 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { getAllChats, getMessages, findChat: findChatRaw } = require('./editors');
+const { getAllChats, getMessages, findChat: findChatRaw, resetCaches } = require('./editors');
 
 const CACHE_DIR = path.join(os.homedir(), '.agentlytics');
 const CACHE_DB = path.join(CACHE_DIR, 'cache.db');
@@ -190,7 +190,9 @@ function analyzeAndStore(chat) {
   );
 }
 
-function scanAll(onProgress) {
+function scanAll(onProgress, opts = {}) {
+  const force = opts.force || false;
+  if (force || opts.resetCaches) resetCaches();
   const chats = getAllChats();
   const total = chats.length;
   let scanned = 0;
@@ -199,8 +201,8 @@ function scanAll(onProgress) {
 
   // Check which chats need updating
   const existing = {};
-  for (const row of db.prepare('SELECT id, last_updated_at FROM chats').all()) {
-    existing[row.id] = row.last_updated_at;
+  for (const row of db.prepare('SELECT id, last_updated_at, bubble_count FROM chats').all()) {
+    existing[row.id] = { ts: row.last_updated_at, bc: row.bubble_count };
   }
 
   const ins = insertChat();
@@ -224,11 +226,14 @@ function scanAll(onProgress) {
   // Analyze messages for chats that are new or updated
   for (const chat of chats) {
     scanned++;
-    const cachedTs = existing[chat.composerId];
     const chatTs = chat.lastUpdatedAt || chat.createdAt || 0;
 
-    // Skip if already cached and not updated
-    if (cachedTs && cachedTs >= chatTs) {
+    // Skip if already cached and not updated (unless force rescan)
+    const cached = existing[chat.composerId];
+    const cachedTs = cached ? cached.ts : null;
+    const cachedBc = cached ? cached.bc : null;
+    const chatBc = chat.bubbleCount || 0;
+    if (!force && cachedTs && cachedTs >= chatTs && cachedBc >= chatBc) {
       // Check if stats exist
       const hasStat = db.prepare('SELECT 1 FROM chat_stats WHERE chat_id = ?').get(chat.composerId);
       if (hasStat) {
@@ -262,17 +267,30 @@ function scanAll(onProgress) {
 // ============================================================
 
 function getCachedChats(opts = {}) {
-  let sql = 'SELECT * FROM chats WHERE 1=1';
+  let sql = 'SELECT c.*, cs.models AS _models FROM chats c LEFT JOIN chat_stats cs ON cs.chat_id = c.id WHERE 1=1';
   const params = [];
-  if (opts.editor) { sql += ' AND source LIKE ?'; params.push(`%${opts.editor}%`); }
-  if (opts.folder) { sql += ' AND folder LIKE ?'; params.push(`%${opts.folder}%`); }
-  if (opts.named !== false) { sql += ' AND (name IS NOT NULL OR bubble_count > 0)'; }
-  if (opts.dateFrom) { sql += ' AND COALESCE(last_updated_at, created_at) >= ?'; params.push(opts.dateFrom); }
-  if (opts.dateTo) { sql += ' AND COALESCE(last_updated_at, created_at) <= ?'; params.push(opts.dateTo); }
-  sql += ' ORDER BY last_updated_at DESC';
+  if (opts.editor) { sql += ' AND c.source LIKE ?'; params.push(`%${opts.editor}%`); }
+  if (opts.folder) { sql += ' AND c.folder LIKE ?'; params.push(`%${opts.folder}%`); }
+  if (opts.named !== false) { sql += ' AND (c.name IS NOT NULL OR c.bubble_count > 0)'; }
+  if (opts.dateFrom) { sql += ' AND COALESCE(c.last_updated_at, c.created_at) >= ?'; params.push(opts.dateFrom); }
+  if (opts.dateTo) { sql += ' AND COALESCE(c.last_updated_at, c.created_at) <= ?'; params.push(opts.dateTo); }
+  sql += ' ORDER BY c.last_updated_at DESC';
   if (opts.limit) { sql += ' LIMIT ?'; params.push(opts.limit); }
   if (opts.offset) { sql += ' OFFSET ?'; params.push(opts.offset); }
-  return db.prepare(sql).all(params);
+  const rows = db.prepare(sql).all(params);
+  for (const r of rows) {
+    r.top_model = null;
+    try {
+      const models = JSON.parse(r._models || '[]');
+      if (models.length > 0) {
+        const freq = {};
+        for (const m of models) freq[m] = (freq[m] || 0) + 1;
+        r.top_model = Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+      }
+    } catch {}
+    delete r._models;
+  }
+  return rows;
 }
 
 function countCachedChats(opts = {}) {
@@ -584,6 +602,9 @@ function safeParseJson(s) {
 function resetAndRescan(onProgress) {
   if (db) db.close();
   if (fs.existsSync(CACHE_DB)) fs.unlinkSync(CACHE_DB);
+  for (const suffix of ['-wal', '-shm']) {
+    if (fs.existsSync(CACHE_DB + suffix)) fs.unlinkSync(CACHE_DB + suffix);
+  }
   initDb();
   return scanAll(onProgress);
 }
@@ -658,6 +679,9 @@ async function scanAllAsync(onProgress) {
 async function resetAndRescanAsync(onProgress) {
   if (db) db.close();
   if (fs.existsSync(CACHE_DB)) fs.unlinkSync(CACHE_DB);
+  for (const suffix of ['-wal', '-shm']) {
+    if (fs.existsSync(CACHE_DB + suffix)) fs.unlinkSync(CACHE_DB + suffix);
+  }
   initDb();
   return scanAllAsync(onProgress);
 }

@@ -8,8 +8,9 @@ const codex = require('./codex');
 const gemini = require('./gemini');
 const copilot = require('./copilot');
 const cursorAgent = require('./cursor-agent');
+const commandcode = require('./commandcode');
 
-const editors = [cursor, windsurf, claude, vscode, zed, opencode, codex, gemini, copilot, cursorAgent];
+const editors = [cursor, windsurf, claude, vscode, zed, opencode, codex, gemini, copilot, cursorAgent, commandcode];
 
 /**
  * Get all chats from all editor adapters, sorted by most recent first.
@@ -53,4 +54,10 @@ function findChat(idPrefix) {
   return chats.find((c) => c.composerId.startsWith(idPrefix));
 }
 
-module.exports = { getAllChats, getMessages, findChat, editors };
+function resetCaches() {
+  for (const editor of editors) {
+    if (typeof editor.resetCache === 'function') editor.resetCache();
+  }
+}
+
+module.exports = { getAllChats, getMessages, findChat, editors, resetCaches };

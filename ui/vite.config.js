@@ -10,7 +10,8 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': 'http://localhost:4637',
+      '/relay': 'http://localhost:4638',
+      '/api': process.env.RELAY ? 'http://localhost:4638' : 'http://localhost:4637',
     },
   },
 })

@@ -234,6 +234,7 @@ function getChats() {
         mode: 'cascade',
         folder,
         encrypted: false,
+        bubbleCount: summary.stepCount || 0,
         _port: ls.port,
         _csrf: ls.csrf,
         _extCsrf: ls.extCsrf,
@@ -248,65 +249,220 @@ function getChats() {
   return chats;
 }
 
-function getMessages(chat) {
+function getSteps(chat) {
   if (!chat._port || !chat._csrf) return [];
 
   // Determine if this is Antigravity based on source
   const isAntigravity = chat.source === 'antigravity';
+
+  // Prefer GetCascadeTrajectorySteps (returns more steps than GetCascadeTrajectory)
+  const resp = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectorySteps', {
+    cascadeId: chat.composerId,
+  }, chat._isHttps, chat._extCsrf, isAntigravity);
+  if (resp && resp.steps && resp.steps.length > 0) return resp.steps;
+
+  // Fallback to old method
+  const resp2 = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectory', {
+    cascadeId: chat.composerId,
+  }, chat._isHttps, chat._extCsrf, isAntigravity);
+  if (resp2 && resp2.trajectory && resp2.trajectory.steps) return resp2.trajectory.steps;
+
+  return [];
+}
+
+/**
+ * Get the tail messages beyond the step limit using generatorMetadata.
+ * The last generatorMetadata entry with messagePrompts has the conversation context.
+ * We find the overlap with step-based messages by matching the last user message content.
+ */
+function getTailMessages(chat, stepMessages) {
+  const isAntigravity = chat.source === 'antigravity';
   const resp = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectory', {
     cascadeId: chat.composerId,
   }, chat._isHttps, chat._extCsrf, isAntigravity);
-  if (!resp || !resp.trajectory || !resp.trajectory.steps) return [];
+  if (!resp || !resp.trajectory) return [];
 
-  const messages = [];
-
-  for (const step of resp.trajectory.steps) {
-    const type = step.type || '';
-    const meta = step.metadata || {};
-
-    if (type === 'CORTEX_STEP_TYPE_USER_INPUT' && step.userInput) {
-      messages.push({
-        role: 'user',
-        content: step.userInput.userResponse || step.userInput.items?.map(i => i.text).join('') || '',
-      });
-    } else if (type === 'CORTEX_STEP_TYPE_PLANNER_RESPONSE' && step.plannerResponse) {
-      const pr = step.plannerResponse;
-      const parts = [];
-      if (pr.thinking) parts.push(`[thinking] ${pr.thinking}`);
-      const text = pr.modifiedResponse || pr.response || pr.textContent || '';
-      if (text.trim()) parts.push(text.trim());
-      const _toolCalls = [];
-      if (pr.toolCalls && pr.toolCalls.length > 0) {
-        for (const tc of pr.toolCalls) {
-          let args = {};
-          try { args = tc.argumentsJson ? JSON.parse(tc.argumentsJson) : {}; } catch { args = {}; }
-          const argKeys = typeof args === 'object' ? Object.keys(args).join(', ') : '';
-          parts.push(`[tool-call: ${tc.name}(${argKeys})]`);
-          _toolCalls.push({ name: tc.name, args });
-        }
-      }
-      if (parts.length > 0) {
-        // Try both generatorModel (Antigravity) and generatorModelUid (Windsurf)
-        const model = meta.generatorModel || meta.generatorModelUid;
-        messages.push({
-          role: 'assistant',
-          content: parts.join('\n'),
-          _model: isAntigravity && model ? normalizeAntigravityModel(model) : model,
-          _toolCalls,
-        });
-      }
-    } else if (type === 'CORTEX_STEP_TYPE_TOOL_EXECUTION' && step.toolExecution) {
-      const te = step.toolExecution;
-      const toolName = te.toolName || te.name || 'tool';
-      const result = te.output || te.result || '';
-      const preview = typeof result === 'string' ? result.substring(0, 500) : JSON.stringify(result).substring(0, 500);
-      messages.push({
-        role: 'tool',
-        content: `[${toolName}] ${preview}`,
-      });
+  const gm = resp.trajectory.generatorMetadata || [];
+  // Find the last entry that has messagePrompts
+  let lastWithMsgs = null;
+  for (let i = gm.length - 1; i >= 0; i--) {
+    if (gm[i].chatModel && gm[i].chatModel.messagePrompts && gm[i].chatModel.messagePrompts.length > 0) {
+      lastWithMsgs = gm[i];
+      break;
     }
   }
+  if (!lastWithMsgs) return [];
+
+  const mp = lastWithMsgs.chatModel.messagePrompts;
+
+  // Find the last user message from step-based parsing
+  let lastUserContent = '';
+  for (let i = stepMessages.length - 1; i >= 0; i--) {
+    if (stepMessages[i].role === 'user' && stepMessages[i].content.length > 20) {
+      lastUserContent = stepMessages[i].content;
+      break;
+    }
+  }
+  if (!lastUserContent) return [];
+
+  // Find this message in the messagePrompts (search from end for efficiency)
+  const needle = lastUserContent.substring(0, 50);
+  let matchIdx = -1;
+  for (let i = mp.length - 1; i >= 0; i--) {
+    if (mp[i].source === 'CHAT_MESSAGE_SOURCE_USER' && mp[i].prompt && mp[i].prompt.includes(needle)) {
+      matchIdx = i;
+      break;
+    }
+  }
+  if (matchIdx < 0 || matchIdx >= mp.length - 1) return [];
+
+  // Convert everything after the match point to messages
+  const tail = [];
+  for (let i = matchIdx + 1; i < mp.length; i++) {
+    const m = mp[i];
+    const src = m.source || '';
+    const prompt = m.prompt || '';
+    if (!prompt || !prompt.trim()) continue;
+
+    let role;
+    if (src === 'CHAT_MESSAGE_SOURCE_USER') role = 'user';
+    else if (src === 'CHAT_MESSAGE_SOURCE_SYSTEM') role = 'assistant';
+    else if (src === 'CHAT_MESSAGE_SOURCE_TOOL') role = 'tool';
+    else continue;
+
+    tail.push({ role, content: prompt });
+  }
+  return tail;
+}
+
+function parseStep(step, isAntigravity = false) {
+  const type = step.type || '';
+  const meta = step.metadata || {};
+
+  if (type === 'CORTEX_STEP_TYPE_USER_INPUT' && step.userInput) {
+    return {
+      role: 'user',
+      content: step.userInput.userResponse || step.userInput.items?.map(i => i.text).join('') || '',
+    };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_ASK_USER_QUESTION' && step.askUserQuestion) {
+    const q = step.askUserQuestion;
+    return {
+      role: 'user',
+      content: q.userResponse || q.question || '',
+    };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_PLANNER_RESPONSE' && step.plannerResponse) {
+    const pr = step.plannerResponse;
+    const parts = [];
+    if (pr.thinking) parts.push(`[thinking] ${pr.thinking}`);
+    const text = pr.modifiedResponse || pr.response || pr.textContent || '';
+    if (text.trim()) parts.push(text.trim());
+    const _toolCalls = [];
+    if (pr.toolCalls && pr.toolCalls.length > 0) {
+      for (const tc of pr.toolCalls) {
+        let args = {};
+        try { args = tc.argumentsJson ? JSON.parse(tc.argumentsJson) : {}; } catch { args = {}; }
+        const argKeys = typeof args === 'object' ? Object.keys(args).join(', ') : '';
+        parts.push(`[tool-call: ${tc.name}(${argKeys})]`);
+        _toolCalls.push({ name: tc.name, args });
+      }
+    }
+    if (parts.length > 0) {
+      // Try both generatorModel (Antigravity) and generatorModelUid (Windsurf)
+      const model = meta.generatorModel || meta.generatorModelUid;
+      return {
+        role: 'assistant',
+        content: parts.join('\n'),
+        _model: isAntigravity && model ? normalizeAntigravityModel(model) : model,
+        _toolCalls,
+      };
+    }
+    return null;
+  }
+
+  // Tool-like step types
+  if (type === 'CORTEX_STEP_TYPE_TOOL_EXECUTION' && step.toolExecution) {
+    const te = step.toolExecution;
+    const toolName = te.toolName || te.name || 'tool';
+    const result = te.output || te.result || '';
+    const preview = typeof result === 'string' ? result.substring(0, 500) : JSON.stringify(result).substring(0, 500);
+    return { role: 'tool', content: `[${toolName}] ${preview}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_RUN_COMMAND' && step.runCommand) {
+    const rc = step.runCommand;
+    const cmd = rc.command || rc.commandLine || '';
+    const out = (rc.output || rc.stdout || '').substring(0, 500);
+    return { role: 'tool', content: `[run_command] ${cmd}${out ? '\n' + out : ''}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_COMMAND_STATUS' && step.commandStatus) {
+    const cs = step.commandStatus;
+    const out = (cs.output || cs.stdout || '').substring(0, 500);
+    return out ? { role: 'tool', content: `[command_status] ${out}` } : null;
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_VIEW_FILE' && step.viewFile) {
+    const vf = step.viewFile;
+    const filePath = vf.filePath || vf.path || '';
+    return { role: 'tool', content: `[view_file] ${filePath}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_CODE_ACTION' && step.codeAction) {
+    const ca = step.codeAction;
+    const filePath = ca.filePath || ca.path || '';
+    return { role: 'tool', content: `[code_action] ${filePath}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_GREP_SEARCH' && step.grepSearch) {
+    const gs = step.grepSearch;
+    const query = gs.query || gs.pattern || '';
+    return { role: 'tool', content: `[grep_search] ${query}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_LIST_DIRECTORY' && step.listDirectory) {
+    const ld = step.listDirectory;
+    const dir = ld.directoryPath || ld.path || '';
+    return { role: 'tool', content: `[list_directory] ${dir}` };
+  }
+
+  if (type === 'CORTEX_STEP_TYPE_MCP_TOOL' && step.mcpTool) {
+    const mt = step.mcpTool;
+    const name = mt.toolName || mt.name || 'mcp_tool';
+    return { role: 'tool', content: `[${name}]` };
+  }
+
+  // Skip non-content steps
+  if (type === 'CORTEX_STEP_TYPE_CHECKPOINT' || type === 'CORTEX_STEP_TYPE_RETRIEVE_MEMORY' ||
+      type === 'CORTEX_STEP_TYPE_MEMORY' || type === 'CORTEX_STEP_TYPE_TODO_LIST' ||
+      type === 'CORTEX_STEP_TYPE_EXIT_PLAN_MODE' || type === 'CORTEX_STEP_TYPE_PROXY_WEB_SERVER') {
+    return null;
+  }
+
+  return null;
+}
+
+function getMessages(chat) {
+  const steps = getSteps(chat);
+  const isAntigravity = chat.source === 'antigravity';
+  const messages = [];
+  for (const step of steps) {
+    const msg = parseStep(step, isAntigravity);
+    if (msg) messages.push(msg);
+  }
+
+  // If steps are truncated, fill in the tail from generatorMetadata
+  const tail = getTailMessages(chat, messages);
+  if (tail.length > 0) {
+    messages.push(...tail);
+  }
+
   return messages;
 }
 
-module.exports = { name, sources, getChats, getMessages };
+function resetCache() { _lsCache = null; }
+
+module.exports = { name, sources, getChats, getMessages, resetCache };

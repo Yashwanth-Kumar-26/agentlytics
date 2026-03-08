@@ -8,18 +8,132 @@ const { execSync } = require('child_process');
 
 const HOME = os.homedir();
 const PORT = process.env.PORT || 4637;
+const RELAY_PORT = process.env.RELAY_PORT || 4638;
 const noCache = process.argv.includes('--no-cache');
+const collectOnly = process.argv.includes('--collect');
+const isRelay = process.argv.includes('--relay');
+const joinIndex = process.argv.indexOf('--join');
+const isJoin = joinIndex !== -1;
+
+// ── Relay mode ───────────────────────────────────────────────
+if (isRelay) {
+  const { initRelayDb, getRelayDb, createRelayApp } = require('./relay-server');
+  const { wireMcpToExpress } = require('./mcp-server');
+
+  console.log('');
+  console.log(chalk.bold('  ⚡ Agentlytics Relay'));
+  console.log(chalk.dim('  Multi-user context sharing server'));
+  console.log('');
+
+  initRelayDb();
+  console.log(chalk.green('  ✓ Relay database initialized'));
+
+  const app = createRelayApp();
+  wireMcpToExpress(app, getRelayDb);
+  console.log(chalk.green('  ✓ MCP server registered'));
+
+  if (process.env.RELAY_PASSWORD) {
+    console.log(chalk.green('  ✓ Password protection enabled'));
+  } else {
+    console.log(chalk.yellow('  ⚠ No password set (set RELAY_PASSWORD env to protect)'));
+  }
+
+  app.listen(RELAY_PORT, () => {
+    const localIp = getLocalIp();
+    const relayUrl = `http://${localIp}:${RELAY_PORT}`;
+
+    console.log('');
+    console.log(chalk.green(`  ✓ Relay server running on port ${RELAY_PORT}`));
+    console.log('');
+    console.log(chalk.bold('  Share this command with your team:'));
+    console.log('');
+    console.log(chalk.cyan(`    npx agentlytics --join ${localIp}:${RELAY_PORT} --username <name>`));
+    console.log('');
+    console.log(chalk.bold('  MCP server endpoint (add to your AI client):'));
+    console.log('');
+    console.log(chalk.cyan(`    ${relayUrl}/mcp`));
+    console.log('');
+    console.log(chalk.dim('  REST endpoints:'));
+    console.log(chalk.dim(`    GET  ${relayUrl}/relay/health`));
+    console.log(chalk.dim(`    GET  ${relayUrl}/relay/users`));
+    console.log(chalk.dim(`    GET  ${relayUrl}/relay/search?q=<query>`));
+    console.log(chalk.dim(`    GET  ${relayUrl}/relay/activity/<username>`));
+    console.log(chalk.dim(`    GET  ${relayUrl}/relay/session/<chatId>`));
+    console.log('');
+    console.log(chalk.dim('  Press Ctrl+C to stop'));
+    console.log('');
+  });
+
+  // Skip the rest of the normal flow
+  return;
+}
+
+// ── Join mode ────────────────────────────────────────────────
+if (isJoin) {
+  (async () => {
+    const relayAddress = process.argv[joinIndex + 1];
+    const usernameIndex = process.argv.indexOf('--username');
+    let username = usernameIndex !== -1 ? process.argv[usernameIndex + 1] : null;
+
+    if (!relayAddress) {
+      console.error(chalk.red('\n  ✗ Missing relay address. Usage: npx agentlytics --join <host:port> --username <name>\n'));
+      process.exit(1);
+    }
+
+    // Auto-detect username from git config if not provided
+    if (!username) {
+      try {
+        const gitEmail = execSync('git config user.email', { encoding: 'utf-8' }).trim();
+        if (gitEmail) username = gitEmail;
+      } catch {}
+    }
+
+    // If still no username, ask interactively
+    if (!username) {
+      const readline = require('readline');
+      const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+      username = await new Promise(r => {
+        rl.question(chalk.bold('\n  Enter your username: '), (answer) => {
+          rl.close();
+          r(answer.trim());
+        });
+      });
+      if (!username) {
+        console.error(chalk.red('\n  ✗ Username is required.\n'));
+        process.exit(1);
+      }
+    }
+
+    const { startJoinClient } = require('./relay-client');
+    startJoinClient(relayAddress, username);
+  })();
+
+  // Skip the rest of the normal flow
+  return;
+}
+
+// ── Helper: get local IP for relay ───────────────────────────
+function getLocalIp() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) return iface.address;
+    }
+  }
+  return 'localhost';
+}
 
 console.log('');
 console.log(chalk.bold('  ⚡ Agentlytics'));
 console.log(chalk.dim('  Comprehensive analytics for your AI coding agents'));
+if (collectOnly) console.log(chalk.cyan('  ⟳ Collect-only mode (no server)'));
 console.log('');
 
 // ── Build UI if not already built ──────────────────────────
 const publicIndex = path.join(__dirname, 'public', 'index.html');
 const uiDir = path.join(__dirname, 'ui');
 
-if (!fs.existsSync(publicIndex) && fs.existsSync(uiDir)) {
+if (!collectOnly && !fs.existsSync(publicIndex) && fs.existsSync(uiDir)) {
   console.log(chalk.cyan('  ⟳ Building dashboard UI (first run)...'));
   try {
     const uiModules = path.join(uiDir, 'node_modules');
@@ -37,7 +151,7 @@ if (!fs.existsSync(publicIndex) && fs.existsSync(uiDir)) {
   console.log('');
 }
 
-if (!fs.existsSync(publicIndex)) {
+if (!collectOnly && !fs.existsSync(publicIndex)) {
   console.error(chalk.red('  ✗ No built UI found at public/index.html'));
   console.error(chalk.dim('    Run: cd ui && npm install && npm run build'));
   process.exit(1);
@@ -50,6 +164,10 @@ if (noCache) {
   const cacheDb = path.join(os.homedir(), '.agentlytics', 'cache.db');
   if (fs.existsSync(cacheDb)) {
     fs.unlinkSync(cacheDb);
+    // Remove WAL/SHM journal files to avoid SQLITE_IOERR_SHORT_READ
+    for (const suffix of ['-wal', '-shm']) {
+      if (fs.existsSync(cacheDb + suffix)) fs.unlinkSync(cacheDb + suffix);
+    }
     console.log(chalk.yellow('  ⟳ Cache cleared (--no-cache)'));
   }
 }
@@ -94,7 +212,7 @@ console.log(chalk.dim('  Initializing cache database...'));
 cache.initDb();
 
 // Scan all editors and populate cache
-console.log(chalk.dim('  Scanning editors: Cursor, Windsurf, Claude Code, VS Code, Zed, Antigravity, OpenCode, Codex, Gemini CLI, Copilot CLI, Cursor Agent'));
+console.log(chalk.dim('  Scanning editors: Cursor, Windsurf, Claude Code, VS Code, Zed, Antigravity, OpenCode, Codex, Gemini CLI, Copilot CLI, Cursor Agent, Command Code'));
 const startTime = Date.now();
 const result = cache.scanAll((progress) => {
   process.stdout.write(chalk.dim(`\r  Scanning: ${progress.scanned}/${progress.total} chats (${progress.analyzed} analyzed, ${progress.skipped} cached)`));
@@ -103,6 +221,14 @@ const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
 console.log('');
 console.log(chalk.green(`  ✓ Cache ready: ${result.total} chats, ${result.analyzed} analyzed, ${result.skipped} cached (${elapsed}s)`));
 console.log('');
+
+// In collect-only mode, exit after cache is built
+if (collectOnly) {
+  const cacheDbPath = path.join(os.homedir(), '.agentlytics', 'cache.db');
+  console.log(chalk.dim(`  Cache file: ${cacheDbPath}`));
+  console.log('');
+  process.exit(0);
+}
 
 // Start server
 const app = require('./server');

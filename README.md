@@ -6,18 +6,18 @@
 
 <p align="center">
   <strong>Unified analytics for your AI coding agents</strong><br>
-  <sub>Cursor · Windsurf · Claude Code · VS Code Copilot · Zed · Antigravity · OpenCode · Codex · Gemini CLI · Copilot CLI · Cursor Agent</sub>
+  <sub>Cursor · Windsurf · Claude Code · VS Code Copilot · Zed · Antigravity · OpenCode · Codex · Gemini CLI · Copilot CLI · Cursor Agent · Command Code</sub>
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/agentlytics"><img src="https://img.shields.io/npm/v/agentlytics?color=6366f1&label=npm" alt="npm"></a>
-  <a href="#supported-editors"><img src="https://img.shields.io/badge/editors-13-818cf8" alt="editors"></a>
+  <a href="#supported-editors"><img src="https://img.shields.io/badge/editors-14-818cf8" alt="editors"></a>
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT-green" alt="license"></a>
-  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%E2%89%A518-brightgreen" alt="node"></a>
+  <a href="https://nodejs.org"><img src="https://img.shields.io/badge/node-%E2%89%A520.19%20%7C%20%E2%89%A522.12-brightgreen" alt="node"></a>
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fdb0acb2-db0f-4091-af23-949ca0fae9c8" alt="Agentlytics demo" width="100%">
+  <img src="misc/screenshot.png" alt="Agentlytics dashboard" width="100%">
 </p>
 
 ---
@@ -30,7 +30,13 @@ Agentlytics reads local chat history from every major AI coding assistant and pr
 npx agentlytics
 ```
 
-Opens at **http://localhost:4637**. Requires Node.js ≥ 18, macOS.
+Opens at **http://localhost:4637**. Requires Node.js ≥ 20.19 or ≥ 22.12, macOS.
+
+To only build the cache database without starting the server:
+
+```bash
+npx agentlytics --collect
+```
 
 For local development, run `npm run dev` from the repo root. That starts both the backend on `http://localhost:4637` and the Vite frontend on `http://localhost:5173`.
 
@@ -42,6 +48,7 @@ For local development, run `npm run dev` from the repo root. That starts both th
 - **Deep Analysis** — Tool frequency, model distribution, token breakdown with drill-down
 - **Compare** — Side-by-side editor comparison with efficiency ratios
 - **Refetch** — One-click cache rebuild with live progress
+- **Relay** — Multi-user context sharing with MCP server for cross-team AI session querying
 
 ## Supported Editors
 
@@ -60,10 +67,83 @@ For local development, run `npm run dev` from the repo root. That starts both th
 | **Gemini CLI** | `gemini-cli` | ✅ | ✅ | ✅ | ✅ |
 | **Copilot CLI** | `copilot-cli` | ✅ | ✅ | ✅ | ✅ |
 | **Cursor Agent** | `cursor-agent` | ✅ | ❌ | ❌ | ❌ |
+| **Command Code** | `commandcode` | ✅ | ✅ | ❌ | ❌ |
 
 > Windsurf, Windsurf Next, and Antigravity must be running during scan.
 
 Codex sessions are read from `${CODEX_HOME:-~/.codex}/sessions/**/*.jsonl`. Reasoning summaries may appear in transcripts when Codex records them in clear text, but encrypted reasoning content is not readable. Codex Desktop and CLI sessions are aggregated into one `codex` editor in analytics.
+
+## Relay
+
+Relay enables multi-user context sharing across a team. One person starts a relay server, others join and share selected project sessions. An MCP server is exposed so AI clients can query across everyone's coding history.
+
+### Start a relay
+
+```bash
+npx agentlytics --relay
+```
+
+Optionally protect with a password:
+
+```bash
+RELAY_PASSWORD=secret npx agentlytics --relay
+```
+
+This starts a relay server on port `4638` and prints the join command and MCP endpoint:
+
+```
+  ⚡ Agentlytics Relay
+
+  Share this command with your team:
+    cd /path/to/project
+    npx agentlytics --join 192.168.1.16:4638
+
+  MCP server endpoint (add to your AI client):
+    http://192.168.1.16:4638/mcp
+```
+
+### Join a relay
+
+```bash
+cd /path/to/your-project
+npx agentlytics --join <host:port>
+```
+
+If the relay is password-protected:
+
+```bash
+RELAY_PASSWORD=secret npx agentlytics --join <host:port>
+```
+
+Username is auto-detected from `git config user.email`. You can override it with `--username <name>`.
+
+You'll be prompted to select which projects to share. The client then syncs session data to the relay every 30 seconds.
+
+### MCP Tools
+
+Connect your AI client to the relay's MCP endpoint (`http://<host>:4638/mcp`) to access these tools:
+
+| Tool | Description |
+|------|-------------|
+| `list_users` | List all connected users and their shared projects |
+| `search_sessions` | Full-text search across all users' chat messages |
+| `get_user_activity` | Get recent sessions for a specific user |
+| `get_session_detail` | Get full conversation messages for a session |
+
+Example query to your AI: *"What did alice do in auth.js?"*
+
+### Relay REST API
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /relay/health` | Health check and user count |
+| `GET /relay/users` | List connected users |
+| `GET /relay/search?q=<query>` | Search messages across all users |
+| `GET /relay/activity/:username` | User's recent sessions |
+| `GET /relay/session/:chatId` | Full session detail |
+| `POST /relay/sync` | Receives data from join clients |
+
+> Relay is designed for trusted local networks. Set `RELAY_PASSWORD` env on both server and clients to enable password protection.
 
 ## How It Works
 
@@ -71,7 +151,11 @@ Codex sessions are read from `${CODEX_HOME:-~/.codex}/sessions/**/*.jsonl`. Reas
 Editor files/APIs → editors/*.js → cache.js (SQLite) → server.js (REST) → React SPA
 ```
 
-All data is normalized into a local SQLite cache at `~/.agentlytics/cache.db`. The Express server exposes read-only REST endpoints consumed by the React frontend.
+```
+Relay:  join clients → POST /relay/sync → relay.db (SQLite) → MCP server → AI clients
+```
+
+All data is normalized into a local SQLite cache at `~/.agentlytics/cache.db`. The Express server exposes read-only REST endpoints consumed by the React frontend. Relay data is stored separately in `~/.agentlytics/relay.db`.
 
 ## API
 
