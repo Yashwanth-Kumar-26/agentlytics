@@ -9,6 +9,8 @@
   "files": [
     "index.js",
     "cache.js",
+    "pricing.js",
+    "pricing.json",
     "server.js",
     "share-image.js",
     "relay-server.js",
