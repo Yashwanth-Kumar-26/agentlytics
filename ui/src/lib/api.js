@@ -210,11 +210,6 @@ export async function fetchRelayTeamStats() {
   return res.json();
 }
 
-export async function fetchRelayUsers() {
-  const res = await authFetch(`${BASE}/relay/users`);
-  return res.json();
-}
-
 export async function fetchRelayUserActivity(username, opts = {}) {
   const q = new URLSearchParams();
   if (opts.folder) q.set('folder', opts.folder);

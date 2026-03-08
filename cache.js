@@ -2,12 +2,55 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
-const { getAllChats, getMessages, findChat: findChatRaw, resetCaches } = require('./editors');
+const { getAllChats, getMessages, resetCaches } = require('./editors');
 const { calculateCost, getModelPricing, normalizeModelName } = require('./pricing');
 
 const CACHE_DIR = path.join(os.homedir(), '.agentlytics');
 const CACHE_DB = path.join(CACHE_DIR, 'cache.db');
 const SCHEMA_VERSION = 5; // bump this when schema changes to auto-revalidate
+
+/**
+ * Normalize a folder path for consistent storage/lookup.
+ * - Strips file:// prefix
+ * - On Windows: resolves real disk casing via fs.realpathSync.native(),
+ *   falls back to uppercase drive letter + lowercase rest, trims trailing backslash,
+ *   and converts backslashes to forward slashes.
+ * - On macOS/Linux: resolves symlinks via fs.realpathSync().
+ */
+function normalizeFolder(folder) {
+  if (!folder) return folder;
+  // Strip file:// prefix
+  folder = folder.replace(/^file:\/\//, '');
+
+  if (process.platform === 'win32') {
+    try {
+      folder = path.resolve(folder);
+      try {
+        folder = fs.realpathSync.native(folder);
+      } catch {
+        // realpathSync.native failed — uppercase drive letter, lowercase rest
+        if (/^[a-zA-Z]:/.test(folder)) {
+          folder = folder[0].toUpperCase() + folder.slice(1);
+        }
+      }
+      // Remove trailing backslash (but keep "C:\")
+      folder = folder.replace(/\\$/, '');
+      if (/^[A-Z]:$/.test(folder)) folder += '\\';
+      // Convert backslashes to forward slashes
+      folder = folder.replace(/\\/g, '/');
+    } catch {
+      // If all else fails, just return as-is with forward slashes
+      folder = folder.replace(/\\/g, '/');
+    }
+  } else {
+    try {
+      folder = fs.realpathSync(folder);
+    } catch {
+      // Path doesn't exist, return as-is
+    }
+  }
+  return folder;
+}
 
 let db = null;
 
@@ -113,6 +156,30 @@ function initDb() {
 
   // Store schema version so future runs can detect mismatches
   db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)').run('schema_version', SCHEMA_VERSION.toString());
+
+  // v2 migration: normalize folder paths on Windows
+  if (process.platform === 'win32') {
+    let normV = 0;
+    try {
+      const row = db.prepare("SELECT value FROM meta WHERE key = 'folder_norm_v'").get();
+      if (row) normV = parseInt(row.value) || 0;
+    } catch {}
+    if (normV < 2) {
+      const chatRows = db.prepare('SELECT id, folder FROM chats WHERE folder IS NOT NULL').all();
+      const updChat = db.prepare('UPDATE chats SET folder = ? WHERE id = ?');
+      for (const r of chatRows) {
+        const norm = normalizeFolder(r.folder);
+        if (norm !== r.folder) updChat.run(norm, r.id);
+      }
+      const tcRows = db.prepare('SELECT id, folder FROM tool_calls WHERE folder IS NOT NULL').all();
+      const updTc = db.prepare('UPDATE tool_calls SET folder = ? WHERE id = ?');
+      for (const r of tcRows) {
+        const norm = normalizeFolder(r.folder);
+        if (norm !== r.folder) updTc.run(norm, r.id);
+      }
+      db.prepare("INSERT OR REPLACE INTO meta (key, value) VALUES ('folder_norm_v', '2')").run();
+    }
+  }
 }
 
 // ============================================================
@@ -244,6 +311,9 @@ function scanAll(onProgress, opts = {}) {
       );
     }
   });
+
+  // Normalize folder paths
+  for (const chat of chats) chat.folder = normalizeFolder(chat.folder);
 
   // Insert all chats in a transaction
   batchInsert(chats);
@@ -401,7 +471,7 @@ function getCachedOverview(opts = {}) {
     GROUP BY folder ORDER BY count DESC LIMIT 20
   `).all(...params);
   const topProjects = projects.map(p => ({
-    name: p.folder.split('/').slice(-2).join('/'),
+    name: p.folder.split(/[/\\]/).slice(-2).join('/'),
     fullPath: p.folder,
     count: p.count,
   }));
@@ -644,7 +714,7 @@ function getCachedProjects(opts = {}) {
 
     result.push({
       folder: proj.folder,
-      name: proj.folder.split('/').pop(),
+      name: proj.folder.split(/[/\\]/).pop(),
       totalSessions: proj.totalSessions,
       editors: proj.editors,
       firstSeen: proj.firstSeen,
@@ -694,16 +764,6 @@ function safeParseJson(s) {
   try { return JSON.parse(s); } catch { return {}; }
 }
 
-function resetAndRescan(onProgress) {
-  if (db) db.close();
-  if (fs.existsSync(CACHE_DB)) fs.unlinkSync(CACHE_DB);
-  for (const suffix of ['-wal', '-shm']) {
-    if (fs.existsSync(CACHE_DB + suffix)) fs.unlinkSync(CACHE_DB + suffix);
-  }
-  initDb();
-  return scanAll(onProgress);
-}
-
 /**
  * Async version of scanAll that yields the event loop between iterations.
  * Required for SSE streaming so progress events actually flush to the client.
@@ -719,6 +779,9 @@ async function scanAllAsync(onProgress) {
   for (const row of db.prepare('SELECT id, last_updated_at FROM chats').all()) {
     existing[row.id] = row.last_updated_at;
   }
+
+  // Normalize folder paths
+  for (const chat of chats) chat.folder = normalizeFolder(chat.folder);
 
   const ins = insertChat();
   const batchInsert = db.transaction((chatBatch) => {
@@ -1316,7 +1379,6 @@ module.exports = {
   getCachedChat,
   getCachedProjects,
   getCachedToolCalls,
-  resetAndRescan,
   resetAndRescanAsync,
   getCachedDashboardStats,
   getCostBreakdown,
