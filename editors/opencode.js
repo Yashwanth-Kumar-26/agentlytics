@@ -3,19 +3,9 @@ const fs = require('fs');
 const os = require('os');
 const Database = require('better-sqlite3');
 
-// OpenCode stores data in different locations depending on the platform
-// - Windows: %LOCALAPPDATA%\opencode\storage (not Roaming)
-// - macOS/Linux: ~/.local/share/opencode/storage (XDG path)
+// OpenCode stores data in XDG-style paths across all platforms
 function getOpenCodeStoragePath() {
-  const home = os.homedir();
-  switch (process.platform) {
-    case 'win32':
-      return path.join(home, 'AppData', 'Local', 'opencode', 'storage');
-    case 'darwin':
-    case 'linux':
-    default:
-      return path.join(home, '.local', 'share', 'opencode', 'storage');
-  }
+  return path.join(os.homedir(), '.local', 'share', 'opencode', 'storage');
 }
 
 const STORAGE_DIR = getOpenCodeStoragePath();
@@ -23,17 +13,9 @@ const SESSION_DIR = path.join(STORAGE_DIR, 'session');
 const MESSAGE_DIR = path.join(STORAGE_DIR, 'message');
 const PART_DIR = path.join(STORAGE_DIR, 'part');
 
-// OpenCode also stores data in a SQLite database (older/primary store)
+// OpenCode also stores data in a SQLite database
 function getOpenCodeDbPath() {
-  const home = os.homedir();
-  switch (process.platform) {
-    case 'win32':
-      return path.join(home, 'AppData', 'Local', 'opencode', 'opencode.db');
-    case 'darwin':
-    case 'linux':
-    default:
-      return path.join(home, '.local', 'share', 'opencode', 'opencode.db');
-  }
+  return path.join(os.homedir(), '.local', 'share', 'opencode', 'opencode.db');
 }
 
 const DB_PATH = getOpenCodeDbPath();
