@@ -68,13 +68,14 @@ function Tip({ missing }) {
 }
 
 export default function AiAuditCard({ folder }) {
+  console.log('AiAuditCard rendering, folder:', folder)
   const [audit, setAudit] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [expanded, setExpanded] = useState(new Set())
-  const ran = useRef(false)
 
   const runAudit = async () => {
+    if (!folder) return
     setLoading(true)
     setError(null)
     try {
@@ -88,10 +89,8 @@ export default function AiAuditCard({ folder }) {
   }
 
   useEffect(() => {
-    if (folder && !ran.current) {
-      ran.current = true
-      runAudit()
-    }
+    console.log('AiAuditCard useEffect triggered, folder:', folder)
+    runAudit()
   }, [folder])
 
   if (loading) {

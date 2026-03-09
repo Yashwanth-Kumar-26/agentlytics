@@ -338,8 +338,15 @@ app.get('/api/check-ai', async (req, res) => {
   if (!folder) return res.status(400).json({ error: 'folder query param required' });
   try {
     const { execFile } = require('child_process');
+    const isWindows = process.platform === 'win32';
+    // On Windows, use npx.cmd with shell; on Unix, use npx directly
+    const cmd = isWindows ? 'npx.cmd' : 'npx';
     const result = await new Promise((resolve, reject) => {
-      execFile('npx', ['-y', 'check-ai', '--json', folder], { timeout: 60000, maxBuffer: 1024 * 1024 }, (err, stdout) => {
+      execFile(cmd, ['-y', 'check-ai', '--json', folder], {
+        timeout: 60000,
+        maxBuffer: 1024 * 1024,
+        shell: isWindows
+      }, (err, stdout) => {
         try {
           const json = JSON.parse(stdout);
           resolve(json);

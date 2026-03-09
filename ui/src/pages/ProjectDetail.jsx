@@ -235,6 +235,7 @@ export default function ProjectDetail() {
       </div>
 
       {/* AI Readiness Audit */}
+      {console.log('Rendering AiAuditCard, folder:', folder)}
       <AiAuditCard folder={folder} />
 
       {/* Sessions */}
