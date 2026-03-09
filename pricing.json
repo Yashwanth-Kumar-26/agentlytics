@@ -7,7 +7,8 @@
       "Google": "ai.google.dev/gemini-api/docs/pricing",
       "xAI": "docs.x.ai/developers/models",
       "DeepSeek": "api-docs.deepseek.com/quick_start/pricing",
-      "Z.ai": "docs.z.ai/guides/overview/pricing"
+      "Z.ai": "docs.z.ai/guides/overview/pricing",
+      "Zen": "opencode.ai/docs/zen/"
     },
     "lastVerified": "2026-03",
     "notes": {
@@ -889,6 +890,54 @@
   "glm-4.5-flash": {
     "input": 0,
     "output": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "big-pickle": {
+    "input": 0,
+    "output": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "minimax-m2.5-free": {
+    "input": 0,
+    "output": 0,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "minimax-m2.5": {
+    "input": 0.3,
+    "output": 1.2,
+    "cacheRead": 0.06,
+    "cacheWrite": 0.375
+  },
+  "minimax-m2.1": {
+    "input": 0.3,
+    "output": 1.2,
+    "cacheRead": 0.1,
+    "cacheWrite": 0
+  },
+  "kimi-k2.5": {
+    "input": 0.6,
+    "output": 3,
+    "cacheRead": 0.1,
+    "cacheWrite": 0
+  },
+  "kimi-k2-thinking": {
+    "input": 0.4,
+    "output": 2.5,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "kimi-k2": {
+    "input": 0.4,
+    "output": 2.5,
+    "cacheRead": 0,
+    "cacheWrite": 0
+  },
+  "qwen3-coder-480b": {
+    "input": 0.45,
+    "output": 1.5,
     "cacheRead": 0,
     "cacheWrite": 0
   }
