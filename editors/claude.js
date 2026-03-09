@@ -200,6 +200,105 @@ function extractAssistantContent(content) {
   return { text: parts.join('\n') || '', toolCalls };
 }
 
+// ============================================================
+// Usage / quota data from Anthropic OAuth API
+// ============================================================
+
+function getClaudeCredentials() {
+  // macOS: Keychain; Linux: secret-tool; Windows: not yet supported
+  try {
+    const { execSync } = require('child_process');
+    let raw;
+    if (process.platform === 'darwin') {
+      raw = execSync('security find-generic-password -s "Claude Code-credentials" -w', { encoding: 'utf-8', timeout: 5000 }).trim();
+    } else if (process.platform === 'linux') {
+      raw = execSync('secret-tool lookup service "Claude Code-credentials"', { encoding: 'utf-8', timeout: 5000 }).trim();
+    } else {
+      return null;
+    }
+    const creds = JSON.parse(raw);
+    const oauth = creds.claudeAiOauth;
+    if (!oauth || !oauth.accessToken) return null;
+    return oauth;
+  } catch { return null; }
+}
+
+function claudeApiFetch(token) {
+  return new Promise((resolve) => {
+    const https = require('https');
+    const req = https.get('https://api.anthropic.com/api/oauth/usage', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'User-Agent': 'agentlytics/1.0',
+        'Authorization': `Bearer ${token}`,
+        'anthropic-beta': 'oauth-2025-04-20',
+      },
+      timeout: 10000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
+async function getUsage() {
+  const creds = getClaudeCredentials();
+  if (!creds) return null;
+
+  const usage = await claudeApiFetch(creds.accessToken);
+  if (!usage) return null;
+
+  const result = {
+    source: 'claude-code',
+    plan: {
+      name: creds.subscriptionType || null,
+    },
+    usage: {},
+    extraUsage: null,
+  };
+
+  if (usage.five_hour) {
+    result.usage.fiveHour = {
+      utilization: usage.five_hour.utilization,
+      resetsAt: usage.five_hour.resets_at || null,
+    };
+  }
+  if (usage.seven_day) {
+    result.usage.sevenDay = {
+      utilization: usage.seven_day.utilization,
+      resetsAt: usage.seven_day.resets_at || null,
+    };
+  }
+  if (usage.seven_day_sonnet) {
+    result.usage.sevenDaySonnet = {
+      utilization: usage.seven_day_sonnet.utilization,
+      resetsAt: usage.seven_day_sonnet.resets_at || null,
+    };
+  }
+  if (usage.seven_day_opus) {
+    result.usage.sevenDayOpus = {
+      utilization: usage.seven_day_opus.utilization,
+      resetsAt: usage.seven_day_opus.resets_at || null,
+    };
+  }
+  if (usage.extra_usage) {
+    result.extraUsage = {
+      isEnabled: usage.extra_usage.is_enabled || false,
+      monthlyLimit: usage.extra_usage.monthly_limit || null,
+      usedCredits: usage.extra_usage.used_credits || null,
+      utilization: usage.extra_usage.utilization || null,
+    };
+  }
+
+  return result;
+}
+
 const labels = { 'claude-code': 'Claude Code' };
 
-module.exports = { name, labels, getChats, getMessages };
+module.exports = { name, labels, getChats, getMessages, getUsage };

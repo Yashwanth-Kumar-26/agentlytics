@@ -1,13 +1,57 @@
 const { execSync } = require('child_process');
-const path = require('path');
 const os = require('os');
-const fs = require('fs');
 
-// Windsurf variants: Windsurf, Windsurf Next
-const VARIANTS = [
-  { id: 'windsurf', matchKey: 'ide', matchVal: 'windsurf', https: false, appName: 'Windsurf', needsMetadata: true },
-  { id: 'windsurf-next', matchKey: 'ide', matchVal: 'windsurf-next', https: false, appName: 'Windsurf - Next', needsMetadata: true },
-];
+// Static fallback for legacy placeholders no longer returned by the LS
+const LEGACY_MODEL_MAP = {
+  'MODEL_PLACEHOLDER_M1': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M2': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M3': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M4': 'Claude 3.5 Haiku',
+  'MODEL_PLACEHOLDER_M5': 'Claude 3.5 Haiku',
+  'MODEL_PLACEHOLDER_M6': 'Claude 3.5 Haiku',
+  'MODEL_PLACEHOLDER_M7': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M8': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M9': 'Claude 3.5 Sonnet',
+  'MODEL_PLACEHOLDER_M10': 'Claude 3.5 Sonnet',
+  'MODEL_CLAUDE_4_5_SONNET': 'Claude 4.5 Sonnet',
+};
+
+// Dynamic model map populated from GetUserStatus RPC (placeholder → friendly label)
+let _modelMap = null;
+
+function getModelMap() {
+  if (_modelMap) return _modelMap;
+  _modelMap = { ...LEGACY_MODEL_MAP };
+  try {
+    const resp = callRpc('GetUserStatus', {});
+    const configs = resp?.userStatus?.cascadeModelConfigData?.clientModelConfigs || [];
+    for (const c of configs) {
+      const key = c.modelOrAlias?.model;
+      const label = c.label;
+      if (key && label) _modelMap[key] = label;
+    }
+  } catch {}
+  return _modelMap;
+}
+
+// Convert friendly label → pricing-compatible model ID
+// "Gemini 3.1 Pro (High)" → "gemini-3.1-pro"
+// "Claude Sonnet 4.6 (Thinking)" → "claude-sonnet-4.6"
+function labelToModelId(label) {
+  return label
+    .replace(/\s*\([^)]*\)\s*/g, '')  // strip "(High)", "(Thinking)", etc.
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-');             // spaces → dashes
+}
+
+function normalizeModel(modelId) {
+  if (!modelId) return null;
+  const map = getModelMap();
+  const label = map[modelId];
+  if (label) return labelToModelId(label);
+  return modelId;
+}
 
 // ============================================================
 // Cross-platform process utilities
@@ -18,12 +62,10 @@ const IS_WINDOWS = process.platform === 'win32';
 function getProcessList() {
   try {
     if (IS_WINDOWS) {
-      // wmic provides CSV-formatted process data
       const output = execSync('wmic process get CommandLine,ProcessId /format:csv', {
         encoding: 'utf-8',
         maxBuffer: 10 * 1024 * 1024,
       });
-      // Parse CSV: skip header, split by comma
       const lines = output.split('\n').slice(1);
       return lines.map(line => {
         const parts = line.split(',');
@@ -33,7 +75,6 @@ function getProcessList() {
         return { commandLine, pid };
       }).filter(Boolean);
     } else {
-      // ps aux on Unix-like systems
       const output = execSync('ps aux', { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
       return output.split('\n').slice(1).map(line => {
         const parts = line.trim().split(/\s+/);
@@ -49,15 +90,12 @@ function getProcessList() {
 function getListeningPorts(pid) {
   try {
     if (IS_WINDOWS) {
-      // netstat -ano shows PID in the last column
       const output = execSync(`netstat -ano | findstr ${pid}`, {
         encoding: 'utf-8',
         maxBuffer: 10 * 1024 * 1024,
       });
       const ports = [];
       for (const line of output.split('\n')) {
-        // Match: 127.0.0.1:PORT ... LISTENING PID
-        // Check if line ends with the PID we're looking for
         if (!line.trim().endsWith(pid)) continue;
         const match = line.match(/127\.0\.0\.1:(\d+).*LISTENING/);
         if (match) {
@@ -66,7 +104,6 @@ function getListeningPorts(pid) {
       }
       return ports;
     } else {
-      // lsof on Unix-like systems
       const output = execSync(`lsof -i TCP -P -n -a -p ${pid} 2>/dev/null`, {
         encoding: 'utf-8',
         maxBuffer: 10 * 1024 * 1024,
@@ -84,106 +121,66 @@ function getListeningPorts(pid) {
 }
 
 // ============================================================
-// Find running Windsurf language server (port + CSRF token)
+// Find running Antigravity language server (port + CSRF token)
 // ============================================================
 
 let _lsCache = null;
 
-function findLanguageServers() {
-  if (_lsCache) return _lsCache;
-  _lsCache = [];
+function findLanguageServer() {
+  if (_lsCache !== null) return _lsCache;
 
-  // Language server executable name varies by platform
   const serverProcessName = IS_WINDOWS
     ? 'language_server_windows'
     : process.platform === 'darwin'
       ? 'language_server_macos'
       : 'language_server_linux';
 
-  // On macOS/Linux, also check env vars for WINDSURF_CSRF_TOKEN (newer Windsurf Next passes CSRF via env, not CLI arg)
-  const envCsrfByPid = {};
-  if (!IS_WINDOWS) {
-    try {
-      const psEnv = execSync('ps eww -A', { encoding: 'utf-8', maxBuffer: 2 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] });
-      for (const envLine of psEnv.split('\n')) {
-        const envCsrf = envLine.match(/WINDSURF_CSRF_TOKEN=(\S+)/);
-        if (envCsrf) {
-          const envPid = envLine.match(/^\s*(\d+)/);
-          if (envPid) envCsrfByPid[envPid[1]] = envCsrf[1];
-        }
-      }
-    } catch {}
-  }
-
   for (const proc of getProcessList()) {
     const { commandLine, pid } = proc;
     if (!commandLine.includes(serverProcessName)) continue;
 
-    const csrfMatch = commandLine.match(/--csrf_token\s+(\S+)/);
-    const ideMatch = commandLine.match(/--ide_name\s+(\S+)/);
     const appDirMatch = commandLine.match(/--app_data_dir\s+(\S+)/);
+    if (!appDirMatch || !appDirMatch[1].includes('antigravity')) continue;
 
-    // Try CLI arg first, then env var fallback
-    const csrf = csrfMatch ? csrfMatch[1] : envCsrfByPid[pid] || null;
-    if (!csrf) continue;
+    const csrfMatch = commandLine.match(/--csrf_token\s+(\S+)/);
+    if (!csrfMatch) continue;
 
-    const ide = ideMatch ? ideMatch[1] : null;
-    const appDataDir = appDirMatch ? appDirMatch[1] : null;
-
-    const extCsrfMatch = commandLine.match(/--extension_server_csrf_token\s+(\S+)/);
-
-    // Check for explicit server port (Antigravity uses --server_port)
     const serverPortMatch = commandLine.match(/--server_port\s+(\d+)/);
-
-    // Find actual listening ports for this process
     const ports = getListeningPorts(pid);
     if (ports.length === 0) continue;
 
-    // Use explicit server_port if available, otherwise use lowest port
     let port;
     if (serverPortMatch) {
       port = parseInt(serverPortMatch[1], 10);
-      if (!ports.includes(port)) {
-        port = Math.min(...ports);
-      }
+      if (!ports.includes(port)) port = Math.min(...ports);
     } else {
       port = Math.min(...ports);
     }
 
-    if (ide) {
-      _lsCache.push({ ide, appDataDir, port, csrf, pid, extCsrf: extCsrfMatch ? extCsrfMatch[1] : null, isHttps: false });
-    }
+    _lsCache = { port, csrf: csrfMatch[1], pid };
+    return _lsCache;
   }
 
-  return _lsCache;
-}
-
-function getLsForVariant(variant) {
-  const servers = findLanguageServers();
-  let matches;
-  if (variant.matchKey === 'appDataDir') {
-    matches = servers.filter(s => s.appDataDir?.includes(variant.matchVal));
-  } else {
-    matches = servers.filter(s => s.ide === variant.matchVal);
-  }
-  return matches.length > 0 ? matches[0] : null;
+  _lsCache = false;
+  return null;
 }
 
 // ============================================================
-// Connect protocol HTTP client for language server RPC
+// Connect protocol HTTP client (always HTTPS, always main CSRF)
 // ============================================================
 
-function callRpc(port, csrf, method, body, extCsrf = null) {
+function callRpc(method, body) {
+  const ls = findLanguageServer();
+  if (!ls) return null;
+
   const data = JSON.stringify(body || {});
-  const url = `http://127.0.0.1:${port}/exa.language_server_pb.LanguageServerService/${method}`;
-
-  const actualCsrf = extCsrf || csrf;
+  const url = `https://127.0.0.1:${ls.port}/exa.language_server_pb.LanguageServerService/${method}`;
 
   try {
     const result = execSync(
-      `curl -s -X POST ${JSON.stringify(url)} ` +
+      `curl -s -k -X POST ${JSON.stringify(url)} ` +
       `-H "Content-Type: application/json" ` +
-      `-H "x-codeium-csrf-token: ${actualCsrf}" ` +
+      `-H "x-codeium-csrf-token: ${ls.csrf}" ` +
       `-d ${JSON.stringify(data)} ` +
       `--max-time 10`,
       { encoding: 'utf-8', maxBuffer: 50 * 1024 * 1024, stdio: ['pipe', 'pipe', 'pipe'] }
@@ -196,59 +193,43 @@ function callRpc(port, csrf, method, body, extCsrf = null) {
 // Adapter interface
 // ============================================================
 
-const name = 'windsurf';
-const sources = ['windsurf', 'windsurf-next'];
+const name = 'antigravity';
 
 function getChats() {
+  const resp = callRpc('GetAllCascadeTrajectories', {});
+  if (!resp || !resp.trajectorySummaries) return [];
+
   const chats = [];
-
-  for (const variant of VARIANTS) {
-    const ls = getLsForVariant(variant);
-    if (!ls) continue;
-
-    const resp = callRpc(ls.port, ls.csrf, 'GetAllCascadeTrajectories', {}, ls.extCsrf);
-    if (!resp || !resp.trajectorySummaries) continue;
-
-    for (const [cascadeId, summary] of Object.entries(resp.trajectorySummaries)) {
-      const ws = (summary.workspaces || [])[0];
-      const folder = ws?.workspaceFolderAbsoluteUri?.replace('file://', '') || null;
-      const rawModel = summary.lastGeneratorModelUid;
-      chats.push({
-        source: variant.id,
-        composerId: cascadeId,
-        name: summary.summary || null,
-        createdAt: summary.createdTime ? new Date(summary.createdTime).getTime() : null,
-        lastUpdatedAt: summary.lastModifiedTime ? new Date(summary.lastModifiedTime).getTime() : null,
-        mode: 'cascade',
-        folder,
-        encrypted: false,
-        bubbleCount: summary.stepCount || 0,
-        _port: ls.port,
-        _csrf: ls.csrf,
-        _extCsrf: ls.extCsrf,
-        _stepCount: summary.stepCount,
-        _model: rawModel,
-        _rawModel: rawModel,
-      });
-    }
+  for (const [cascadeId, summary] of Object.entries(resp.trajectorySummaries)) {
+    const ws = (summary.workspaces || [])[0];
+    const folder = ws?.workspaceFolderAbsoluteUri?.replace('file://', '') || null;
+    const rawModel = summary.lastGeneratorModelUid;
+    chats.push({
+      source: 'antigravity',
+      composerId: cascadeId,
+      name: summary.summary || null,
+      createdAt: summary.createdTime ? new Date(summary.createdTime).getTime() : null,
+      lastUpdatedAt: summary.lastModifiedTime ? new Date(summary.lastModifiedTime).getTime() : null,
+      mode: 'cascade',
+      folder,
+      encrypted: false,
+      bubbleCount: summary.stepCount || 0,
+      _stepCount: summary.stepCount,
+      _model: rawModel ? normalizeModel(rawModel) : rawModel,
+      _rawModel: rawModel,
+    });
   }
 
   return chats;
 }
 
 function getSteps(chat) {
-  if (!chat._port || !chat._csrf) return [];
-
   // Prefer GetCascadeTrajectorySteps (returns more steps than GetCascadeTrajectory)
-  const resp = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectorySteps', {
-    cascadeId: chat.composerId,
-  }, chat._extCsrf);
+  const resp = callRpc('GetCascadeTrajectorySteps', { cascadeId: chat.composerId });
   if (resp && resp.steps && resp.steps.length > 0) return resp.steps;
 
   // Fallback to old method
-  const resp2 = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectory', {
-    cascadeId: chat.composerId,
-  }, chat._extCsrf);
+  const resp2 = callRpc('GetCascadeTrajectory', { cascadeId: chat.composerId });
   if (resp2 && resp2.trajectory && resp2.trajectory.steps) return resp2.trajectory.steps;
 
   return [];
@@ -260,9 +241,7 @@ function getSteps(chat) {
  * We find the overlap with step-based messages by matching the last user message content.
  */
 function getTailMessages(chat, stepMessages) {
-  const resp = callRpc(chat._port, chat._csrf, 'GetCascadeTrajectory', {
-    cascadeId: chat.composerId,
-  }, chat._extCsrf);
+  const resp = callRpc('GetCascadeTrajectory', { cascadeId: chat.composerId });
   if (!resp || !resp.trajectory) return [];
 
   const gm = resp.trajectory.generatorMetadata || [];
@@ -354,11 +333,11 @@ function parseStep(step) {
       }
     }
     if (parts.length > 0) {
-      const model = meta.generatorModelUid;
+      const model = meta.generatorModel || meta.generatorModelUid;
       return {
         role: 'assistant',
         content: parts.join('\n'),
-        _model: model,
+        _model: model ? normalizeModel(model) : model,
         _toolCalls,
       };
     }
@@ -448,133 +427,81 @@ function getMessages(chat) {
 // Usage / quota data from language server RPC
 // ============================================================
 
-function getWindsurfApiKey(appName) {
-  if (!appName) return null;
-  try {
-    const HOME = os.homedir();
-    let dbPath;
-    switch (process.platform) {
-      case 'darwin':
-        dbPath = path.join(HOME, 'Library', 'Application Support', appName, 'User', 'globalStorage', 'state.vscdb');
-        break;
-      case 'win32':
-        dbPath = path.join(HOME, 'AppData', 'Roaming', appName, 'User', 'globalStorage', 'state.vscdb');
-        break;
-      default:
-        dbPath = path.join(HOME, '.config', appName, 'User', 'globalStorage', 'state.vscdb');
-    }
-    if (!fs.existsSync(dbPath)) return null;
-    const Database = require('better-sqlite3');
-    const db = new Database(dbPath, { readonly: true });
-    const row = db.prepare("SELECT value FROM ItemTable WHERE key = 'windsurfAuthStatus'").get();
-    db.close();
-    if (!row) return null;
-    const parsed = JSON.parse(row.value);
-    return parsed.apiKey || null;
-  } catch { return null; }
-}
-
 function getUsage() {
-  const results = [];
+  const resp = callRpc('GetUserStatus', {});
+  if (!resp || !resp.userStatus) return null;
 
-  for (const variant of VARIANTS) {
-    const ls = getLsForVariant(variant);
-    if (!ls) continue;
+  const us = resp.userStatus;
+  const ps = us.planStatus || {};
+  const pi = ps.planInfo || {};
+  const modelConfigs = (us.cascadeModelConfigData || {}).clientModelConfigs || [];
 
-    const apiKey = getWindsurfApiKey(variant.appName);
-    if (!apiKey) continue;
-    const body = {
-      metadata: {
-        api_key: apiKey,
-        ide_name: variant.id,
-        ide_version: '1.0.0',
-        extension_version: '1.0.0',
-        locale: 'en',
-      },
+  const models = modelConfigs.map((m) => {
+    const qi = m.quotaInfo || {};
+    return {
+      label: m.label || null,
+      model: m.modelOrAlias?.model || null,
+      remainingFraction: qi.remainingFraction != null ? qi.remainingFraction : null,
+      resetTime: qi.resetTime || null,
+      supportsImages: m.supportsImages || false,
     };
+  });
 
-    const resp = callRpc(ls.port, ls.csrf, 'GetUserStatus', body, ls.extCsrf);
-    if (!resp || !resp.userStatus) continue;
+  // Antigravity returns credits already in display units (no ÷100 needed)
+  const promptAlloc = ps.availablePromptCredits || 0;
+  const promptUsed = ps.usedPromptCredits || 0;
+  const flexAlloc = ps.availableFlexCredits || 0;
+  const flexUsed = ps.usedFlexCredits || 0;
+  const flowAlloc = ps.availableFlowCredits || 0;
 
-    const us = resp.userStatus;
-    const ps = us.planStatus || {};
-    const pi = ps.planInfo || {};
-    const modelConfigs = (us.cascadeModelConfigData || {}).clientModelConfigs || [];
+  const remainingPrompt = Math.max(0, promptAlloc - promptUsed);
+  const remainingFlex = Math.max(0, flexAlloc - flexUsed);
+  const totalRemaining = remainingPrompt + remainingFlex;
 
-    const models = modelConfigs.map((m) => {
-      const qi = m.quotaInfo || {};
-      return {
-        label: m.label || null,
-        model: m.modelOrAlias?.model || null,
-        remainingFraction: qi.remainingFraction != null ? qi.remainingFraction : null,
-        resetTime: qi.resetTime || null,
-        supportsImages: m.supportsImages || false,
-      };
-    });
+  // Credit multipliers per model
+  const creditMultipliers = (pi.creditMultiplierOverrides || []).reduce((acc, entry) => {
+    const model = entry.modelOrAlias?.model;
+    if (model && entry.creditMultiplier != null) acc[model] = entry.creditMultiplier;
+    return acc;
+  }, {});
 
-    // Raw values are in internal units (÷100 for display credits)
-    const promptAlloc = (ps.availablePromptCredits || 0) / 100;
-    const promptUsed = (ps.usedPromptCredits || 0) / 100;
-    const flexAlloc = (ps.availableFlexCredits || 0) / 100;
-    const flexUsed = (ps.usedFlexCredits || 0) / 100;
-    const flowAlloc = (ps.availableFlowCredits || 0) / 100;
-    const monthlyDisplay = (pi.monthlyPromptCredits || 0) / 100;
-
-    const remainingPrompt = Math.max(0, promptAlloc - promptUsed);
-    const remainingFlex = Math.max(0, flexAlloc - flexUsed);
-    const totalRemaining = remainingPrompt + remainingFlex;
-
-    // Credit multipliers per model
-    const creditMultipliers = (pi.creditMultiplierOverrides || []).reduce((acc, entry) => {
-      const model = entry.modelOrAlias?.model;
-      if (model && entry.creditMultiplier != null) acc[model] = entry.creditMultiplier;
-      return acc;
-    }, {});
-
-    results.push({
-      source: variant.id,
-      plan: {
-        name: pi.planName || null,
-        tier: pi.teamsTier || null,
-        monthlyPromptCredits: monthlyDisplay,
-        monthlyFlowCredits: (pi.monthlyFlowCredits || 0) / 100,
-        canBuyMoreCredits: pi.canBuyMoreCredits || false,
-      },
-      usage: {
-        promptCredits: { allocated: promptAlloc, used: promptUsed, remaining: remainingPrompt },
-        flexCredits: { allocated: flexAlloc, used: flexUsed, remaining: remainingFlex },
-        flowCredits: { allocated: flowAlloc },
-        totalRemainingCredits: totalRemaining,
-      },
-      billingCycle: {
-        start: ps.planStart || null,
-        end: ps.planEnd || null,
-      },
-      topUp: ps.topUpStatus ? {
-        monthlyAmount: ps.topUpStatus.monthlyTopUpAmount || null,
-        increment: ps.topUpStatus.topUpIncrement || null,
-      } : null,
-      features: {
-        webSearch: pi.cascadeWebSearchEnabled || false,
-        browser: pi.browserEnabled || false,
-        knowledgeBase: pi.knowledgeBaseEnabled || false,
-        autoRunCommands: pi.cascadeCanAutoRunCommands || false,
-        commitMessages: pi.canGenerateCommitMessages || false,
-      },
-      models,
-      creditMultipliers,
-      user: {
-        name: us.name || null,
-        email: us.email || null,
-      },
-    });
-  }
-
-  return results.length > 0 ? results : null;
+  return {
+    source: 'antigravity',
+    plan: {
+      name: pi.planName || null,
+      tier: pi.teamsTier || null,
+      monthlyPromptCredits: (pi.monthlyPromptCredits || 0) / 100,
+      monthlyFlowCredits: (pi.monthlyFlowCredits || 0) / 100,
+      canBuyMoreCredits: pi.canBuyMoreCredits || false,
+    },
+    usage: {
+      promptCredits: { allocated: promptAlloc, used: promptUsed, remaining: remainingPrompt },
+      flexCredits: { allocated: flexAlloc, used: flexUsed, remaining: remainingFlex },
+      flowCredits: { allocated: flowAlloc },
+      totalRemainingCredits: totalRemaining,
+    },
+    billingCycle: {
+      start: ps.planStart || null,
+      end: ps.planEnd || null,
+    },
+    features: {
+      webSearch: pi.cascadeWebSearchEnabled || false,
+      browser: pi.browserEnabled || false,
+      knowledgeBase: pi.knowledgeBaseEnabled || false,
+      autoRunCommands: pi.cascadeCanAutoRunCommands || false,
+      commitMessages: pi.canGenerateCommitMessages || false,
+    },
+    models,
+    creditMultipliers,
+    user: {
+      name: us.name || null,
+      email: us.email || null,
+    },
+  };
 }
 
-function resetCache() { _lsCache = null; }
+function resetCache() { _lsCache = null; _modelMap = null; }
 
-const labels = { 'windsurf': 'Windsurf', 'windsurf-next': 'Windsurf Next' };
+const labels = { 'antigravity': 'Antigravity' };
 
-module.exports = { name, sources, labels, getChats, getMessages, resetCache, getUsage };
+module.exports = { name, labels, getChats, getMessages, resetCache, getUsage };

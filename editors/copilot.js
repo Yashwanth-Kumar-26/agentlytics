@@ -171,6 +171,73 @@ function safeParse(str) {
   try { return JSON.parse(str); } catch { return {}; }
 }
 
+// ============================================================
+// Usage / quota data from GitHub Copilot internal API
+// ============================================================
+
+function getCopilotToken() {
+  // GitHub Copilot stores its OAuth token in ~/.config/github-copilot/apps.json
+  const appsPath = path.join(os.homedir(), '.config', 'github-copilot', 'apps.json');
+  try {
+    if (!fs.existsSync(appsPath)) return null;
+    const data = JSON.parse(fs.readFileSync(appsPath, 'utf-8'));
+    for (const entry of Object.values(data)) {
+      if (entry.oauth_token) return { token: entry.oauth_token, user: entry.user || null };
+    }
+  } catch {}
+  return null;
+}
+
+function fetchCopilotStatus(token) {
+  return new Promise((resolve) => {
+    const https = require('https');
+    const req = https.get('https://api.github.com/copilot_internal/v2/token', {
+      headers: {
+        'Authorization': `token ${token}`,
+        'Accept': 'application/json',
+        'User-Agent': 'agentlytics/1.0',
+      },
+      timeout: 10000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
+async function getUsage() {
+  const creds = getCopilotToken();
+  if (!creds) return null;
+
+  const status = await fetchCopilotStatus(creds.token);
+  if (!status || status.message) return null;
+
+  return {
+    source: 'copilot-cli',
+    plan: {
+      name: status.sku || null,
+      individual: status.individual || false,
+    },
+    features: {
+      chat: status.chat_enabled || false,
+      codeReview: status.code_review_enabled || false,
+      agentMode: status.agent_mode_auto_approval || false,
+    },
+    limits: {
+      quotas: status.limited_user_quotas || null,
+      resetDate: status.limited_user_reset_date || null,
+    },
+    user: {
+      login: creds.user || null,
+    },
+  };
+}
+
 const labels = { 'copilot-cli': 'Copilot CLI' };
 
-module.exports = { name, labels, getChats, getMessages };
+module.exports = { name, labels, getChats, getMessages, getUsage };

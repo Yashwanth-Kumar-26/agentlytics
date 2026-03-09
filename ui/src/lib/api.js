@@ -203,6 +203,11 @@ export async function fetchToolCalls(name, opts = {}) {
   return res.json();
 }
 
+export async function fetchUsage() {
+  const res = await fetch(`${BASE}/api/usage`);
+  return res.json();
+}
+
 // ── Relay API ──
 
 export async function fetchMode() {

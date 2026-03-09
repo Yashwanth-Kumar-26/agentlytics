@@ -31,6 +31,7 @@ You switch between Cursor, Windsurf, Claude Code, VS Code Copilot, and more — 
 - ✗ Can't compare which editor is more effective
 - ✗ Can't search across all your AI conversations
 - ✗ No way to share session context with your team
+- ✗ No unified view of your plans, credits, and rate limits
 
 ## The Solution
 
@@ -77,6 +78,7 @@ npx agentlytics --collect
 - **Projects** — Per-project analytics: sessions, messages, tokens, models, editor breakdown, and drill-down detail views
 - **Deep Analysis** — Tool frequency heatmaps, model distribution, token breakdown, and filterable drill-down analytics
 - **Compare** — Side-by-side editor comparison with efficiency ratios, token usage, and session patterns
+- **Subscriptions** — Live view of your editor plans, usage quotas, remaining credits, and rate limits across Cursor, Windsurf, Claude Code, Copilot, Codex, and more
 - **Relay** — Share AI session context across your team via MCP
 
 ## Supported Editors

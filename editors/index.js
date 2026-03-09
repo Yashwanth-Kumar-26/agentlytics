@@ -1,5 +1,6 @@
 const cursor = require('./cursor');
 const windsurf = require('./windsurf');
+const antigravity = require('./antigravity');
 const claude = require('./claude');
 const vscode = require('./vscode');
 const zed = require('./zed');
@@ -12,7 +13,7 @@ const commandcode = require('./commandcode');
 const goose = require('./goose');
 const kiro = require('./kiro');
 
-const editors = [cursor, windsurf, claude, vscode, zed, opencode, codex, gemini, copilot, cursorAgent, commandcode, goose, kiro];
+const editors = [cursor, windsurf, antigravity, claude, vscode, zed, opencode, codex, gemini, copilot, cursorAgent, commandcode, goose, kiro];
 
 // Build a unified source → display-label map from all editor modules
 const editorLabels = {};
@@ -60,4 +61,23 @@ function resetCaches() {
   }
 }
 
-module.exports = { getAllChats, getMessages, editors, editorLabels, resetCaches };
+/**
+ * Get usage / quota data from all editors that support it.
+ * Returns an array of usage objects, one per editor/variant.
+ */
+async function getAllUsage() {
+  const results = [];
+  for (const editor of editors) {
+    if (typeof editor.getUsage !== 'function') continue;
+    try {
+      const usage = await editor.getUsage();
+      if (!usage) continue;
+      // Windsurf returns an array (one per variant), Cursor returns a single object
+      if (Array.isArray(usage)) results.push(...usage);
+      else results.push(usage);
+    } catch { /* skip broken adapters */ }
+  }
+  return results;
+}
+
+module.exports = { getAllChats, getMessages, editors, editorLabels, resetCaches, getAllUsage };

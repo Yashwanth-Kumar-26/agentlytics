@@ -435,6 +435,66 @@ function safeParseJson(value) {
   }
 }
 
+// ============================================================
+// Usage / quota data from Codex auth.json JWT
+// ============================================================
+
+function getCodexAuth() {
+  const authPath = path.join(
+    process.env.CODEX_HOME && process.env.CODEX_HOME.trim()
+      ? path.resolve(process.env.CODEX_HOME.trim())
+      : DEFAULT_CODEX_HOME,
+    'auth.json'
+  );
+  try {
+    return JSON.parse(fs.readFileSync(authPath, 'utf-8'));
+  } catch { return null; }
+}
+
+function decodeJwtPayload(token) {
+  if (!token) return null;
+  try {
+    const parts = token.split('.');
+    if (parts.length < 2) return null;
+    let payload = parts[1];
+    // Fix base64url padding
+    payload += '='.repeat((4 - payload.length % 4) % 4);
+    const decoded = Buffer.from(payload, 'base64').toString('utf-8');
+    return JSON.parse(decoded);
+  } catch { return null; }
+}
+
+async function getUsage() {
+  const auth = getCodexAuth();
+  if (!auth || !auth.tokens) return null;
+
+  const idPayload = decodeJwtPayload(auth.tokens.id_token);
+  const accessPayload = decodeJwtPayload(auth.tokens.access_token);
+
+  const authClaims = idPayload?.['https://api.openai.com/auth'] || accessPayload?.['https://api.openai.com/auth'] || {};
+  const profileClaims = idPayload?.['https://api.openai.com/profile'] || accessPayload?.['https://api.openai.com/profile'] || {};
+
+  const planType = authClaims.chatgpt_plan_type || null;
+  const email = profileClaims.email || null;
+  const subscriptionStart = authClaims.chatgpt_subscription_active_start || null;
+  const subscriptionEnd = authClaims.chatgpt_subscription_active_until || null;
+
+  if (!planType && !email) return null;
+
+  return {
+    source: 'codex',
+    plan: {
+      name: planType,
+      subscriptionStart,
+      subscriptionEnd,
+    },
+    user: {
+      email,
+    },
+    authMode: auth.auth_mode || null,
+  };
+}
+
 const labels = { 'codex': 'Codex' };
 
 module.exports = {
@@ -442,4 +502,5 @@ module.exports = {
   labels,
   getChats,
   getMessages,
+  getUsage,
 };

@@ -287,6 +287,16 @@ app.get('/api/share-image', (req, res) => {
   }
 });
 
+app.get('/api/usage', async (req, res) => {
+  try {
+    const { getAllUsage } = require('./editors');
+    const usage = await getAllUsage();
+    res.json(usage);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/refetch', async (req, res) => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',

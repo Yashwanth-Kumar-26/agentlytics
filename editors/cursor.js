@@ -341,6 +341,78 @@ function getMessages(chat) {
   return msgs;
 }
 
+// ============================================================
+// Usage / quota data from Cursor REST API
+// ============================================================
+
+function getCursorAccessToken() {
+  try {
+    const db = new Database(GLOBAL_STORAGE_DB, { readonly: true });
+    const row = db.prepare("SELECT value FROM ItemTable WHERE key = 'cursorAuth/accessToken'").get();
+    db.close();
+    return row ? row.value : null;
+  } catch { return null; }
+}
+
+function cursorApiFetch(endpoint, token) {
+  return new Promise((resolve) => {
+    const https = require('https');
+    const url = `https://api2.cursor.sh/auth/${endpoint}`;
+    const req = https.get(url, {
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      timeout: 10000,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); } catch { resolve(null); }
+      });
+    });
+    req.on('error', () => resolve(null));
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+  });
+}
+
+async function getUsage() {
+  const token = getCursorAccessToken();
+  if (!token) return null;
+
+  const [profile, usage] = await Promise.all([
+    cursorApiFetch('full_stripe_profile', token),
+    cursorApiFetch('usage', token),
+  ]);
+
+  if (!profile && !usage) return null;
+
+  const result = {
+    source: 'cursor',
+    plan: {
+      name: profile?.individualMembershipType || profile?.membershipType || null,
+      status: profile?.subscriptionStatus || null,
+      isTeamMember: profile?.isTeamMember || false,
+      isYearlyPlan: profile?.isYearlyPlan || false,
+    },
+    usage: {},
+    startOfMonth: usage?.startOfMonth || null,
+  };
+
+  // Parse per-model usage from the usage endpoint
+  if (usage) {
+    for (const [model, data] of Object.entries(usage)) {
+      if (model === 'startOfMonth') continue;
+      result.usage[model] = {
+        numRequests: data.numRequests || 0,
+        numRequestsTotal: data.numRequestsTotal || 0,
+        numTokens: data.numTokens || 0,
+        maxRequestUsage: data.maxRequestUsage || null,
+        maxTokenUsage: data.maxTokenUsage || null,
+      };
+    }
+  }
+
+  return result;
+}
+
 const labels = { 'cursor': 'Cursor' };
 
-module.exports = { name, labels, getChats, getMessages };
+module.exports = { name, labels, getChats, getMessages, getUsage };
