@@ -542,7 +542,7 @@ function createRelayApp() {
     if (fs.existsSync(index)) {
       res.sendFile(index);
     } else {
-      res.status(404).send('UI not built. Run: cd ui && npm install && npm run build');
+      res.status(404).send('UI not built. Run: cd ui && npm install && npm run build (or use your preferred package manager)');
     }
   });
 

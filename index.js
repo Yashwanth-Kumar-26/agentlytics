@@ -28,6 +28,17 @@ if (!isNodeSupported) {
 }
 
 const HOME = os.homedir();
+
+// ── Detect package manager ─────────────────────────────────
+function detectPackageManager() {
+  const ua = process.env.npm_config_user_agent || '';
+  if (ua.startsWith('pnpm/')) return 'pnpm';
+  if (ua.startsWith('yarn/')) return 'yarn';
+  if (ua.startsWith('bun/')) return 'bun';
+  return 'npm';
+}
+const PM = detectPackageManager();
+const PM_RUN = PM === 'npm' ? 'npx' : PM === 'pnpm' ? 'pnpm dlx' : PM === 'yarn' ? 'yarn dlx' : 'bunx';
 const PORT = process.env.PORT || 4637;
 const RELAY_PORT = process.env.RELAY_PORT || 4638;
 const noCache = process.argv.includes('--no-cache');
@@ -69,7 +80,7 @@ if (isRelay) {
     console.log('');
     console.log(chalk.bold('  Share this command with your team:'));
     console.log('');
-    console.log(chalk.cyan(`    npx agentlytics --join ${localIp}:${RELAY_PORT} --username <name>`));
+    console.log(chalk.cyan(`    ${PM_RUN} agentlytics --join ${localIp}:${RELAY_PORT} --username <name>`));
     console.log('');
     console.log(chalk.bold('  MCP server endpoint (add to your AI client):'));
     console.log('');
@@ -98,7 +109,7 @@ if (isJoin) {
     let username = usernameIndex !== -1 ? process.argv[usernameIndex + 1] : null;
 
     if (!relayAddress) {
-      console.error(chalk.red('\n  ✗ Missing relay address. Usage: npx agentlytics --join <host:port> --username <name>\n'));
+      console.error(chalk.red(`\n  ✗ Missing relay address. Usage: ${PM_RUN} agentlytics --join <host:port> --username <name>\n`));
       process.exit(1);
     }
 
@@ -163,9 +174,14 @@ if (!collectOnly && !isUiDev && !fs.existsSync(publicIndex) && fs.existsSync(uiD
     const uiModules = path.join(uiDir, 'node_modules');
     if (fs.existsSync(uiModules)) fs.rmSync(uiModules, { recursive: true, force: true });
     console.log(chalk.dim('    Installing UI dependencies...'));
-    execSync('npm install --no-audit --no-fund', { cwd: uiDir, stdio: 'pipe' });
+    const installCmd = PM === 'npm' ? 'npm install --no-audit --no-fund'
+      : PM === 'pnpm' ? 'pnpm install --no-frozen-lockfile'
+      : PM === 'yarn' ? 'yarn install'
+      : 'bun install';
+    const buildCmd = `${PM} run build`;
+    execSync(installCmd, { cwd: uiDir, stdio: 'pipe' });
     console.log(chalk.dim('    Compiling frontend...'));
-    execSync('npm run build', { cwd: uiDir, stdio: 'pipe' });
+    execSync(buildCmd, { cwd: uiDir, stdio: 'pipe' });
     console.log(chalk.green('  ✓ UI built successfully'));
   } catch (err) {
     console.error(chalk.red('  ✗ UI build failed:'), err.message);
@@ -176,7 +192,7 @@ if (!collectOnly && !isUiDev && !fs.existsSync(publicIndex) && fs.existsSync(uiD
 
 if (!collectOnly && !isUiDev && !fs.existsSync(publicIndex)) {
   console.error(chalk.red('  ✗ No built UI found at public/index.html'));
-  console.error(chalk.dim('    Run: cd ui && npm install && npm run build'));
+  console.error(chalk.dim(`    Run: cd ui && ${PM} install && ${PM} run build`));
   process.exit(1);
 }
 

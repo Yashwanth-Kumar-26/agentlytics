@@ -40,6 +40,12 @@ You switch between Cursor, Windsurf, Claude Code, VS Code Copilot, and more — 
 
 ```bash
 npx agentlytics
+# or
+pnpm dlx agentlytics
+# or
+yarn dlx agentlytics
+# or
+bunx agentlytics
 ```
 
 Opens at **http://localhost:4637**. Requires Node.js ≥ 20.19 or ≥ 22.12, macOS. No data ever leaves your machine.
@@ -114,6 +120,7 @@ To only build the cache without starting the server:
 
 ```bash
 npx agentlytics --collect
+# or: pnpm dlx agentlytics --collect
 ```
 
 ## Features
@@ -158,6 +165,7 @@ Relay enables multi-user context sharing across a team. One person starts a rela
 
 ```bash
 npx agentlytics --relay
+# or: pnpm dlx agentlytics --relay
 ```
 
 Optionally protect with a password:
@@ -184,6 +192,7 @@ This starts a relay server on port `4638` and prints the join command and MCP en
 ```bash
 cd /path/to/your-project
 npx agentlytics --join <host:port>
+# or: pnpm dlx agentlytics --join <host:port>
 ```
 
 If the relay is password-protected:
