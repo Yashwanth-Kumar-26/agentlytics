@@ -678,7 +678,7 @@ function getCachedChat(id) {
     createdAt: chat.created_at,
     lastUpdatedAt: chat.last_updated_at,
     encrypted: !!chat.encrypted,
-    messages: messages.map(m => ({ role: m.role, content: m.content, model: m.model })),
+    messages: messages.map(m => ({ role: m.role, content: m.content, model: m.model, inputTokens: m.input_tokens || 0, outputTokens: m.output_tokens || 0 })),
     stats: parsedStats,
     toolCallDetails,
   };
